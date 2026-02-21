@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #faf8f5;
+  --color-brand-100: #f2ebe1;
+  --color-brand-200: #e4d5c4;
+  --color-brand-300: #d4bda1;
+  --color-brand-400: #c2a17a;
+  --color-brand-500: #b58d60;
+  --color-brand-600: #a5784f;
+  --color-brand-700: #8a6042;
+  --color-brand-800: #714e38;
+  --color-brand-900: #5c4130;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+
+  --font-sans: 'Inter', var(--font-geist-sans), sans-serif;
+  --font-serif: 'Playfair Display', serif;
+
+  --animate-fade-in-up: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-slow: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-spin-slow: spin 10s linear infinite;
+  
+  --keyframes-fade-in-up: {
+    "0%": { opacity: 0, transform: "translateY(30px)" },
+    "100%": { opacity: 1, transform: "translateY(0)" }
+  };
+  --keyframes-float: {
+    "0%": { transform: "translateY(0px)" },
+    "50%": { transform: "translateY(-15px)" },
+    "100%": { transform: "translateY(0px)" }
+  };
+  --keyframes-pulse-slow: {
+    "0%, 100%": { opacity: 1 },
+    "50%": { opacity: .7 }
+  };
+}
+
+:root {
+  --background: #faf8f5;
+  --foreground: #403429;
+  --card: #ffffff;
+  --card-foreground: #403429;
+  --border: #f2ebe1;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1c1917;
+    --foreground: #f5f5f4;
+    --card: #292524;
+    --card-foreground: #f5f5f4;
+    --border: #44403c;
+  }
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  transition: background-color 0.5s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-brand-300);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-400);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  .glass-panel {
+    background: rgba(41, 37, 36, 0.6);
+    border: 1px solid rgba(68, 64, 60, 0.5);
+  }
+}
+
+.hover-lift {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.hover-lift:hover {
+  transform: translateY(-5px);
+}

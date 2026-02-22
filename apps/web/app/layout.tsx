@@ -2,6 +2,8 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Navbar } from '@/app/components/Navbar'; // Import มาใช้
+import { ThemeProvider } from '@/app/components/ThemeProvider';
+import { LanguageProvider } from '@/app/contexts/LanguageContext';
 
 export const metadata: Metadata = {
   title: 'Family JS',
@@ -19,12 +21,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
-        {/* Navbar ตัวเดียว จัดการให้ทุกหน้า */}
-        <Navbar />
+    <html lang="en" suppressHydrationWarning>
+      <body className="antialiased bg-background text-foreground transition-colors duration-500">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <LanguageProvider>
+            {/* Navbar ตัวเดียว จัดการให้ทุกหน้า */}
+            <Navbar />
 
-        {children}
+            {children}
+          </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

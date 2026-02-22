@@ -3,14 +3,19 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Search, Wallet, ArrowLeft, Share2, Bookmark } from 'lucide-react';
+import { Menu, X, Search, Wallet, ArrowLeft, Share2, Bookmark, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import SearchInput from '@/app/components/SearchInput'; // เปิดใช้งาน Search ได้แล้วครับ (ถ้า SearchInput ปกติ)
+import { ThemeToggle } from '@/app/components/ThemeToggle';
+import { useLanguage } from '@/app/contexts/LanguageContext';
+import { LanguageToggle } from '@/app/components/LanguageToggle';
 
 export function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobilePrivateOpen, setIsMobilePrivateOpen] = useState(false);
+  const { t } = useLanguage();
 
   // --- 1. FIXED SCROLL LOGIC (แก้ปัญหาหน้ากระพริบ) ---
   useEffect(() => {
@@ -30,18 +35,23 @@ export function Navbar() {
   // ปิดเมนูมือถืออัตโนมัติ เมื่อเปลี่ยนหน้า
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setIsMobilePrivateOpen(false);
   }, [pathname]);
 
   // --- CASE 1: หน้า ABOUT (โชว์แค่ปุ่ม Back) ---
   // (ผมเอา /memories ออกจากตรงนี้ เพื่อให้ Gallery มีเมนูเต็มๆ ครับ)
-  if (pathname === '/about' || pathname === '/memories' || pathname === '/money') {
+  if (pathname === '/about' || pathname === '/resume' || pathname === '/memories' || pathname === '/documents' || pathname === '/money' || pathname === '/blog') {
     return (
       <nav className="fixed top-0 w-full z-50 h-20 flex items-center mix-blend-difference text-white pointer-events-none">
         <div className="max-w-7xl mx-auto w-full px-6 flex justify-between items-center pointer-events-auto">
           <Link href="/" className="flex items-center gap-2 hover:opacity-70 transition-opacity group">
             <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-bold tracking-widest uppercase">Back</span>
+            <span className="text-sm font-bold tracking-widest uppercase">{t('nav.back')}</span>
           </Link>
+          {/* เปลี่ยนภาษาในหน้า About ได้ */}
+          <div className="pointer-events-auto">
+            <LanguageToggle />
+          </div>
         </div>
       </nav>
     );
@@ -54,14 +64,15 @@ export function Navbar() {
         <div className="max-w-4xl mx-auto w-full px-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2 text-stone-500 hover:text-[#C5A059] transition-colors group">
             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-medium">Back</span>
+            <span className="text-sm font-medium">{t('nav.back')}</span>
           </Link>
           <div className="text-sm font-bold text-stone-800 tracking-tight uppercase opacity-50 hidden md:block">
             Scale & Skill
           </div>
-          <div className="flex gap-3 text-stone-400">
-            <button className="hover:text-[#C5A059] transition-colors"><Bookmark size={20} /></button>
-            <button className="hover:text-[#C5A059] transition-colors"><Share2 size={20} /></button>
+          <div className="flex items-center gap-3 text-stone-400">
+            <LanguageToggle />
+            {/* <button className="hover:text-[#C5A059] transition-colors"><Bookmark size={20} /></button>
+            <button className="hover:text-[#C5A059] transition-colors"><Share2 size={20} /></button> */}
           </div>
         </div>
       </nav>
@@ -80,7 +91,7 @@ export function Navbar() {
         pointer-events-auto
         relative flex flex-col md:flex-row items-center justify-between px-6 py-3 rounded-[2rem] transition-all duration-300
         ${scrolled || isMobileMenuOpen
-          ? 'w-full max-w-5xl bg-white/90 backdrop-blur-md shadow-lg shadow-stone-200/50 border border-white/40'
+          ? 'w-full max-w-5xl bg-white/90 dark:bg-[#1c1917]/90 backdrop-blur-md shadow-lg shadow-stone-200/50 dark:shadow-none border border-white/40 dark:border-stone-800'
           : 'w-full max-w-6xl bg-transparent'}
       `}>
 
@@ -99,7 +110,7 @@ export function Navbar() {
               </div>
             </div>
             <div className="flex flex-col">
-              <span className={`text-lg font-extrabold tracking-tight leading-none uppercase font-sans ${scrolled || isMobileMenuOpen ? 'text-stone-800' : 'text-stone-800'}`}>
+              <span className={`text-lg font-extrabold tracking-tight leading-none uppercase font-sans ${scrolled || isMobileMenuOpen ? 'text-stone-800 dark:text-stone-100' : 'text-stone-800 dark:text-stone-100'}`}>
                 Family JS
               </span>
               <span className="text-[0.6rem] font-bold text-[#C5A059] tracking-widest uppercase leading-tight">
@@ -113,7 +124,7 @@ export function Navbar() {
             {/* <SearchInput />  <-- ถ้า SearchInput ไม่มีปัญหา เปิดใช้ได้ครับ */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 text-stone-800 hover:text-[#C5A059] transition-colors"
+              className="p-2 text-stone-800 dark:text-stone-200 hover:text-[#C5A059] dark:hover:text-[#C5A059] transition-colors"
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -122,9 +133,22 @@ export function Navbar() {
 
         {/* === DESKTOP MENU === */}
         <div className="hidden md:flex items-center gap-8">
-          <NavLink href="/" current={pathname}>Home</NavLink>
-          <NavLink href="/about" current={pathname}>About</NavLink>
-          <NavLink href="/memories" current={pathname}>Gallery</NavLink>
+          <NavLink href="/" current={pathname}>{t('nav.home')}</NavLink>
+          <NavLink href="/about" current={pathname}>{t('nav.about')}</NavLink>
+          <NavLink href="/blog" current={pathname}>Blog</NavLink>
+          {/* <NavLink href="/resume" current={pathname}>{t('nav.resume')}</NavLink> */}
+
+          {/* Private Zone Dropdown (Desktop) */}
+          <div className="relative group py-2">
+            <button className={`flex items-center gap-1 text-sm font-medium transition-colors outline-none ${pathname === '/memories' || pathname === '/documents' ? 'text-stone-900 dark:text-stone-100 font-bold' : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'}`}>
+              {t('nav.privateZone')} <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300" />
+            </button>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 w-44 bg-white/90 dark:bg-[#1c1917]/90 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.4)] border border-stone-100 dark:border-stone-800 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 flex flex-col p-2 translate-y-2 group-hover:translate-y-0">
+              <Link href="/memories" className={`px-4 py-2.5 text-sm rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-[#C5A059] transition-colors ${pathname === '/memories' ? 'text-[#C5A059] bg-stone-50/50 dark:bg-stone-800/80' : 'text-stone-600 dark:text-stone-300'}`}>{t('nav.gallery')}</Link>
+              <Link href="/documents" className={`px-4 py-2.5 mt-1 text-sm rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-[#C5A059] transition-colors ${pathname === '/documents' ? 'text-[#C5A059] bg-stone-50/50 dark:bg-stone-800/80' : 'text-stone-600 dark:text-stone-300'}`}>{t('nav.vault')}</Link>
+              <Link href="/resume" className={`px-4 py-2.5 mt-1 text-sm rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-[#C5A059] transition-colors ${pathname === '/resume' ? 'text-[#C5A059] bg-stone-50/50 dark:bg-stone-800/80' : 'text-stone-600 dark:text-stone-300'}`}>{t('nav.resume')}</Link>
+            </div>
+          </div>
 
           {/* 👇 เพิ่มเมนู Wallet */}
           {/* <NavLink href="/money" current={pathname}>
@@ -136,18 +160,37 @@ export function Navbar() {
 
         {/* === DESKTOP ACTIONS === */}
         <div className="hidden md:flex items-center gap-3">
+          <LanguageToggle />
+          <ThemeToggle />
           <SearchInput />
-          <Link href="/login" className="px-5 py-2 bg-stone-900 text-white text-xs font-bold rounded-full hover:bg-[#C5A059] transition-all hover:scale-105 hover:shadow-md">
-            Login
+          <Link href="/login" className="px-5 py-2 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 text-xs font-bold rounded-full hover:bg-[#C5A059] dark:hover:bg-[#C5A059] transition-all hover:scale-105 hover:shadow-md">
+            {t('nav.login')}
           </Link>
         </div>
 
         {/* === MOBILE MENU DROPDOWN === */}
         {isMobileMenuOpen && (
-          <div className="w-full flex flex-col items-center gap-4 pt-6 pb-2 md:hidden border-t border-stone-100 mt-4 animate-in slide-in-from-top-2 fade-in duration-200">
-            <MobileNavLink href="/" current={pathname}>Home</MobileNavLink>
-            <MobileNavLink href="/about" current={pathname}>About</MobileNavLink>
-            <MobileNavLink href="/memories" current={pathname}>Gallery</MobileNavLink>
+          <div className="w-full flex flex-col items-center gap-4 pt-6 pb-2 md:hidden border-t border-stone-100 dark:border-stone-800 mt-4 animate-in slide-in-from-top-2 fade-in duration-200">
+            <MobileNavLink href="/" current={pathname}>{t('nav.home')}</MobileNavLink>
+            <MobileNavLink href="/about" current={pathname}>{t('nav.about')}</MobileNavLink>
+            <MobileNavLink href="/blog" current={pathname}>Blog</MobileNavLink>
+            {/* <MobileNavLink href="/resume" current={pathname}>{t('nav.resume')}</MobileNavLink> */}
+
+            <div className="w-full flex flex-col items-center gap-2">
+              <button
+                onClick={() => setIsMobilePrivateOpen(!isMobilePrivateOpen)}
+                className={`flex items-center gap-1 text-base font-medium outline-none transition-colors ${(pathname === '/memories' || pathname === '/documents') ? 'text-[#C5A059]' : 'text-stone-600 dark:text-stone-300 hover:text-[#C5A059] dark:hover:text-[#C5A059]'}`}
+              >
+                {t('nav.privateZone')} <ChevronDown size={16} className={`${isMobilePrivateOpen ? 'rotate-180' : ''} transition-transform duration-300`} />
+              </button>
+
+              {isMobilePrivateOpen && (
+                <div className="w-[85%] max-w-sm flex flex-col items-center gap-3 py-3 mt-1 bg-stone-50 dark:bg-stone-900/50 border border-stone-100 dark:border-stone-800/80 rounded-2xl animate-in fade-in duration-200">
+                  <MobileNavLink href="/memories" current={pathname}>{t('nav.gallery')}</MobileNavLink>
+                  <MobileNavLink href="/documents" current={pathname}>{t('nav.vault')}</MobileNavLink>
+                </div>
+              )}
+            </div>
 
             {/* 👇 เพิ่มเมนู Wallet Mobile */}
             <MobileNavLink href="/money" current={pathname}>
@@ -156,9 +199,13 @@ export function Navbar() {
               </span>
             </MobileNavLink>
 
-            <Link href="/login" className="px-8 py-2.5 bg-stone-900 text-white text-sm font-bold rounded-full hover:bg-[#C5A059] w-full text-center mt-2">
-              Login
-            </Link>
+            <div className="flex items-center justify-center gap-4 w-full mt-2">
+              <LanguageToggle />
+              <ThemeToggle />
+              <Link href="/login" className="flex-1 py-2.5 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 text-sm font-bold rounded-full hover:bg-[#C5A059] dark:hover:bg-[#C5A059] text-center">
+                {t('nav.login')}
+              </Link>
+            </div>
           </div>
         )}
 
@@ -172,7 +219,7 @@ export function Navbar() {
 function NavLink({ href, current, children }: { href: string, current: string, children: React.ReactNode }) {
   const isActive = current === href;
   return (
-    <Link href={href} className={`text-sm font-medium transition-colors relative group ${isActive ? 'text-stone-900 font-bold' : 'text-stone-500 hover:text-stone-900'}`}>
+    <Link href={href} className={`text-sm font-medium transition-colors relative group ${isActive ? 'text-stone-900 dark:text-stone-100 font-bold' : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'}`}>
       {children}
       <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#C5A059] transition-all ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
     </Link>
@@ -182,7 +229,7 @@ function NavLink({ href, current, children }: { href: string, current: string, c
 function MobileNavLink({ href, current, children }: { href: string, current: string, children: React.ReactNode }) {
   const isActive = current === href;
   return (
-    <Link href={href} className={`text-base font-medium ${isActive ? 'text-[#C5A059]' : 'text-stone-600 hover:text-[#C5A059]'}`}>
+    <Link href={href} className={`text-base font-medium transition-colors ${isActive ? 'text-[#C5A059]' : 'text-stone-600 dark:text-stone-300 hover:text-[#C5A059] dark:hover:text-[#C5A059]'}`}>
       {children}
     </Link>
   );

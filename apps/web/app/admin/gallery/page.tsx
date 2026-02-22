@@ -11,7 +11,7 @@ import {
     Maximize2,
     X,
 } from 'lucide-react';
-import { getFullUrl } from '../../lib/utils';
+import { getFullUrl, compressImage } from '../../lib/utils';
 
 interface Photo {
     id: string;
@@ -81,9 +81,11 @@ export default function GalleryPage() {
 
             // ถ้ามีไฟล์ให้อัปโหลดไฟล์ก่อน
             if (selectedFile) {
+                // บีบอัดภาพก่อนอัพโหลด
+                const compressedFile = await compressImage(selectedFile, { maxSize: 1920, quality: 0.8 }) as File;
                 const formData = new FormData();
                 formData.append('folder', 'photos');
-                formData.append('file', selectedFile);
+                formData.append('file', compressedFile);
 
                 const uploadRes = await fetch(`${apiUrl}/uploads`, {
                     method: 'POST',

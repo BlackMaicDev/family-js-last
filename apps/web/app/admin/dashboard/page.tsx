@@ -55,12 +55,62 @@ const chartData = [
 
 export default function DashboardPage() {
     const [mounted, setMounted] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [dashboardData, setDashboardData] = useState<any>(null);
 
     useEffect(() => {
         setMounted(true);
+        fetchDashboardData();
     }, []);
 
-    const maxChartValue = Math.max(...chartData.map((d) => d.value));
+    const fetchDashboardData = async () => {
+        try {
+            setLoading(true);
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${apiUrl}/admin/dashboard`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Failed to fetch dashboard data');
+            setDashboardData(await res.json());
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+
+    // Dynamic stats mapping
+    const dynamicStats = [
+        { label: 'Total Views', value: dashboardData?.stats?.totalViews?.toLocaleString() || '0', change: '+12.5%', trend: 'up' as const, icon: Eye, color: '#C5A059' },
+        { label: 'Total Posts', value: dashboardData?.stats?.totalPosts?.toLocaleString() || '0', change: '+3', trend: 'up' as const, icon: FileText, color: '#6EE7B7' },
+        { label: 'Active Users', value: dashboardData?.stats?.activeUsers?.toLocaleString() || '0', change: '-2.4%', trend: 'down' as const, icon: Users, color: '#93C5FD' },
+        { label: 'Gallery Items', value: dashboardData?.stats?.galleryItems?.toLocaleString() || '0', change: '+18', trend: 'up' as const, icon: ImageIcon, color: '#F9A8D4' },
+    ];
+
+    const displayPosts = dashboardData?.recentPosts || [];
+    const displayChart = dashboardData?.chartData || chartData;
+    const maxChartValue = Math.max(...displayChart.map((d: any) => d.value));
+
+    if (loading && !dashboardData) {
+        return (
+            <div className="flex h-[80vh] w-full items-center justify-center">
+                <div className="w-8 h-8 rounded-full border-2 border-[#C5A059] border-t-transparent animate-spin" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+                <p className="text-sm text-red-400 mb-4">{error}</p>
+                <button onClick={fetchDashboardData} className="px-4 py-2 text-sm font-semibold bg-[#C5A059] text-white rounded-xl">ลองใหม่อีกครั้ง</button>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
@@ -101,7 +151,7 @@ export default function DashboardPage() {
 
             {/* ===== Stat Cards ===== */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {stats.map((stat, i) => {
+                {dynamicStats.map((stat, i) => {
                     const Icon = stat.icon;
                     return (
                         <div
@@ -168,7 +218,7 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="flex items-end justify-between gap-2 md:gap-3 h-48">
-                        {chartData.map((bar, i) => {
+                        {displayChart.map((bar: any, i: number) => {
                             const heightPercent = (bar.value / maxChartValue) * 100;
                             return (
                                 <div key={bar.day} className="flex-1 flex flex-col items-center gap-2">
@@ -309,7 +359,7 @@ export default function DashboardPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {recentPosts.map((post, i) => (
+                            {displayPosts.map((post: any, i: number) => (
                                 <tr
                                     key={i}
                                     className="cursor-pointer group transition-colors duration-150"

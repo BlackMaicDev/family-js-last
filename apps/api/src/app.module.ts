@@ -16,6 +16,8 @@ import { InterestsModule } from './interests/interests.module';
 import { AlbumsModule } from './albums/albums.module';
 import { PhotosModule } from './photos/photos.module';
 import { UploadsModule } from './uploads/uploads.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { ExperiencesModule } from './experiences/experiences.module';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { UploadsModule } from './uploads/uploads.module';
     AlbumsModule,
     PhotosModule,
     UploadsModule,
+    DashboardModule,
+    ExperiencesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

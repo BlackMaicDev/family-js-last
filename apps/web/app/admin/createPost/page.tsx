@@ -18,7 +18,7 @@ import {
     Globe,
     Lock
 } from 'lucide-react';
-import { getFullUrl } from '../../lib/utils';
+import { getFullUrl, compressImage } from '../../lib/utils';
 
 const RichTextEditor = dynamic(() => import('../components/RichTextEditor'), {
     ssr: false,
@@ -96,11 +96,37 @@ function CreatePostContent() {
         } catch (err: unknown) { alert(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด'); } finally { setSaving(false); }
     };
 
-    const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]; if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => { const url = ev.target?.result as string; setThumbnail(url); setThumbnailPreview(url); };
-        reader.readAsDataURL(file); e.target.value = '';
+        try {
+            // 1. บีบอัดภาพ
+            const compressedFile = await compressImage(file, { maxSize: 1200, quality: 0.8 }) as File;
+
+            // 2. อัพโหลดไฟล์ไป server
+            const token = localStorage.getItem('token');
+            const formData = new FormData();
+            formData.append('folder', 'posts');
+            formData.append('file', compressedFile);
+
+            const uploadRes = await fetch(`${apiUrl}/uploads`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData,
+            });
+
+            if (!uploadRes.ok) {
+                const errData = await uploadRes.json().catch(() => ({}));
+                throw new Error(errData.message || `อัปโหลดรูปภาพไม่สำเร็จ (${uploadRes.status})`);
+            }
+
+            const uploadData = await uploadRes.json();
+            // 3. เก็บแค่ URL path
+            setThumbnail(uploadData.url);
+            setThumbnailPreview(uploadData.url);
+        } catch (err) {
+            alert(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ');
+        }
+        e.target.value = '';
     };
 
     const handleThumbnailUrl = () => { const url = prompt('Enter image URL:'); if (url) { setThumbnail(url); setThumbnailPreview(url); } };

@@ -36,4 +36,14 @@ export class ProfilesService {
 
         return profile;
     }
+
+    async findFirst() {
+        return this.prisma.profile.findFirst({
+            include: {
+                user: {
+                    select: { username: true, nickname: true, email: true }
+                }
+            }
+        });
+    }
 }

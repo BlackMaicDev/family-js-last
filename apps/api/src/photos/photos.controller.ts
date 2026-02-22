@@ -21,6 +21,11 @@ export class PhotosController {
         return this.photosService.findAllAdmin();
     }
 
+    @Get()
+    findAll() {
+        return this.photosService.findAll();
+    }
+
     @Get('album/:albumId')
     findByAlbum(@Param('albumId') albumId: string) {
         return this.photosService.findByAlbum(albumId);

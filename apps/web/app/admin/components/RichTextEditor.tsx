@@ -28,6 +28,7 @@ import {
     Maximize2,
     Move,
 } from 'lucide-react';
+import { compressImage } from '../../lib/utils';
 
 interface RichTextEditorProps {
     value: string;
@@ -360,14 +361,20 @@ export default function RichTextEditor({
     );
 
     const handleImageUpload = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
+        async (e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
             if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                insertImageHtml(event.target?.result as string, file.name);
-            };
-            reader.readAsDataURL(file);
+            try {
+                const compressed = await compressImage(file, { maxSize: 1920, quality: 0.8, outputType: 'base64' }) as string;
+                insertImageHtml(compressed, file.name);
+            } catch {
+                // fallback ถ้า compress ไม่ได้
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    insertImageHtml(event.target?.result as string, file.name);
+                };
+                reader.readAsDataURL(file);
+            }
             e.target.value = '';
         },
         [insertImageHtml],

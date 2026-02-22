@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { Loader2, X, Calendar, ZoomIn } from 'lucide-react';
 // นำเข้า PinLock จาก path ที่คุณเก็บไฟล์ไว้
 import PinLock from '../components/PinLock';
+import { getFullUrl } from '../lib/utils';
 
 // --- Type Definition ---
 interface GalleryItem {
-  id: number;
+  id: string | number;
   image_url: string;
   caption: string;
   taken_at: string;
@@ -40,9 +40,21 @@ export default function GalleryPage() {
     const fetchGallery = async () => {
       setLoading(true);
       try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const res = await fetch(`${apiUrl}/photos`);
+        if (!res.ok) throw new Error('Failed to fetch gallery');
 
+        const data = await res.json();
 
+        // Map ข้อมูลจาก API ให้ตรงกับ GalleryItem interface
+        const formattedItems: GalleryItem[] = data.map((item: any) => ({
+          id: item.id,
+          image_url: getFullUrl(item.url), // ดึง URL เต็มของรูป
+          caption: item.caption || '',
+          taken_at: item.createdAt,
+        }));
 
+        setItems(formattedItems);
       } catch (err) {
         console.error('Error fetching gallery:', err);
       } finally {
@@ -109,11 +121,9 @@ export default function GalleryPage() {
                 className="break-inside-avoid relative group cursor-zoom-in rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 bg-white border border-stone-100 mb-4"
                 onClick={() => setSelectedImage(item)}
               >
-                <Image
+                <img
                   src={item.image_url}
                   alt={item.caption || 'Gallery Image'}
-                  width={500} // กำหนดขนาดเริ่มต้น
-                  height={500}
                   className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700"
                   loading="lazy"
                 />
@@ -161,13 +171,11 @@ export default function GalleryPage() {
             className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative w-full h-[70vh] md:h-[80vh]">
-              <Image
+            <div className="relative w-full h-[70vh] md:h-[80vh] flex items-center justify-center">
+              <img
                 src={selectedImage.image_url}
                 alt={selectedImage.caption || 'Full Image'}
-                fill
-                className="object-contain"
-                priority
+                className="max-w-full max-h-full object-contain"
               />
             </div>
 

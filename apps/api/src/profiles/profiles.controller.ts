@@ -7,10 +7,14 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class ProfilesController {
     constructor(private readonly profilesService: ProfilesService) { }
 
-    // ใครๆ ก็ดู Profile ของคนอื่นได้โดยผ่าน userId
     @Get(':userId')
     findOne(@Param('userId') userId: string) {
         return this.profilesService.findOne(userId);
+    }
+
+    @Get()
+    findFirst() {
+        return this.profilesService.findFirst();
     }
 
     // แก้ไขหรือสร้าง Profile ของตัวเอง (Upsert)

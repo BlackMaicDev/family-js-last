@@ -27,6 +27,15 @@ export class PhotosService {
         });
     }
 
+    async findAll() {
+        return this.prisma.photo.findMany({
+            include: {
+                user: { select: { nickname: true } }
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
     async findByAlbum(albumId: string) {
         return this.prisma.photo.findMany({
             where: { albumId },

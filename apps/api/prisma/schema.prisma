@@ -40,6 +40,7 @@ model User {
   educations   Education[]   
   projects     Project[]     
   interests    Interest[]
+  experiences  Experience[]
 
   albums    Album[]  // อัลบั้มที่สร้าง
   photos    Photo[]  // รูปภาพที่อัปโหลด
@@ -164,6 +165,18 @@ model Education {
   userId      String
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@map("Education")
+}
+
+model Experience {
+  id          String    @id @default(uuid())
+  title       String    // e.g. Senior Full Stack Developer
+  company     String    // e.g. Tech Innovators Inc.
+  startDate   DateTime
+  endDate     DateTime? // null means Present
+  description String?   @db.Text
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("Experience")
 }
 
 model Interest {

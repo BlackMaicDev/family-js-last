@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import {
     User, BookOpen, Briefcase, Camera, Loader2, Save, Plus, Edit2, Trash2, X, Check, Link as LinkIcon, Image as ImageIcon, MapPin, Mail, Phone, Calendar
 } from 'lucide-react';
-import { getFullUrl } from '../../lib/utils';
+import { getFullUrl, compressImage } from '../../lib/utils';
 
 // === Types ===
 interface UserProfile {
@@ -28,6 +28,15 @@ interface Education {
     endDate: string | null;
 }
 
+interface Experience {
+    id: string;
+    title: string;
+    company: string;
+    description: string | null;
+    startDate: string;
+    endDate: string | null;
+}
+
 interface Project {
     id: string;
     title: string;
@@ -37,7 +46,7 @@ interface Project {
 }
 
 export default function ResumePage() {
-    const [activeTab, setActiveTab] = useState<'profile' | 'education' | 'projects'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'education' | 'projects' | 'experience'>('profile');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -69,6 +78,15 @@ export default function ResumePage() {
     });
     const [projImageFile, setProjImageFile] = useState<File | null>(null);
     const [projImagePreview, setProjImagePreview] = useState<string | null>(null);
+
+    // 4. Experience State
+    const [experiences, setExperiences] = useState<Experience[]>([]);
+    const [showExpModal, setShowExpModal] = useState(false);
+    const [savingExp, setSavingExp] = useState(false);
+    const [editingExpId, setEditingExpId] = useState<string | null>(null);
+    const [expForm, setExpForm] = useState({
+        title: '', company: '', description: '', startDate: '', endDate: ''
+    });
 
     const [mounted, setMounted] = useState(false);
 
@@ -121,6 +139,10 @@ export default function ResumePage() {
             const projRes = await fetch(`${apiUrl}/projects/user/${userId}`);
             if (projRes.ok) setProjects(await projRes.json());
 
+            // 5. Get Experiences
+            const expRes = await fetch(`${apiUrl}/experiences/user/${userId}`);
+            if (expRes.ok) setExperiences(await expRes.json());
+
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -132,9 +154,16 @@ export default function ResumePage() {
     const uploadFile = async (file: File, folder: string) => {
         const token = localStorage.getItem('token');
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+        // บีบอัดภาพก่อนอัพโหลด (ถ้าเป็นไฟล์ภาพ)
+        let fileToUpload: File = file;
+        if (file.type.startsWith('image/')) {
+            fileToUpload = await compressImage(file, { maxSize: 1920, quality: 0.8 }) as File;
+        }
+
         const formData = new FormData();
         formData.append('folder', folder);
-        formData.append('file', file);
+        formData.append('file', fileToUpload);
 
         const res = await fetch(`${apiUrl}/uploads`, {
             method: 'POST',
@@ -255,6 +284,80 @@ export default function ResumePage() {
         }
     };
 
+    // === Experience Handlers ===
+    const openExpModal = (exp?: Experience) => {
+        if (exp) {
+            setEditingExpId(exp.id);
+            setExpForm({
+                title: exp.title,
+                company: exp.company,
+                description: exp.description || '',
+                startDate: new Date(exp.startDate).toISOString().split('T')[0],
+                endDate: exp.endDate ? new Date(exp.endDate).toISOString().split('T')[0] : ''
+            });
+        } else {
+            setEditingExpId(null);
+            setExpForm({ title: '', company: '', description: '', startDate: '', endDate: '' });
+        }
+        setShowExpModal(true);
+    };
+
+    const handleSaveExp = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            setSavingExp(true);
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+            const token = localStorage.getItem('token');
+
+            const payload = {
+                title: expForm.title,
+                company: expForm.company,
+                description: expForm.description || undefined,
+                startDate: new Date(expForm.startDate).toISOString(),
+                endDate: expForm.endDate ? new Date(expForm.endDate).toISOString() : undefined,
+            };
+
+            const method = editingExpId ? 'PATCH' : 'POST';
+            const url = editingExpId ? `${apiUrl}/experiences/${editingExpId}` : `${apiUrl}/experiences`;
+
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) throw new Error('Failed to save experience');
+
+            const expRes = await fetch(`${apiUrl}/experiences/user/${currentUser?.userId}`);
+            if (expRes.ok) setExperiences(await expRes.json());
+
+            setShowExpModal(false);
+        } catch (err: any) {
+            alert(err.message);
+        } finally {
+            setSavingExp(false);
+        }
+    };
+
+    const handleDeleteExp = async (id: string) => {
+        if (!confirm('ยืนยันลบประวัติการทำงานนี้?')) return;
+        try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${apiUrl}/experiences/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Delete failed');
+            setExperiences(prev => prev.filter(e => e.id !== id));
+        } catch (err) {
+            alert('ลบไม่สำเร็จ');
+        }
+    };
+
     // === Projects Handlers ===
     const openProjModal = (proj?: Project) => {
         if (proj) {
@@ -358,8 +461,9 @@ export default function ResumePage() {
 
     const tabs = [
         { id: 'profile', label: 'Profile Information', icon: User },
+        { id: 'experience', label: 'Experience', icon: Briefcase },
         { id: 'education', label: 'Education', icon: BookOpen },
-        { id: 'projects', label: 'Portfolio & Works', icon: Briefcase }
+        { id: 'projects', label: 'Portfolio & Works', icon: Camera }
     ];
 
     return (
@@ -529,6 +633,67 @@ export default function ResumePage() {
                             </div>
                         )}
 
+                        {/* ======================= TAB: EXPERIENCE ======================= */}
+                        {activeTab === 'experience' && (
+                            <div className="p-6 md:p-8 animate-fade-in space-y-6">
+                                <div className="border-b border-[var(--admin-border)] pb-4 flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-xl font-bold text-[var(--admin-fg)]">Work Experience</h2>
+                                        <p className="text-[var(--admin-muted)] text-sm">ประวัติการทำงานของคุณ</p>
+                                    </div>
+                                    <button
+                                        onClick={() => openExpModal()}
+                                        className="flex items-center gap-1.5 px-3.5 py-2 bg-[#C5A059] text-white text-xs font-semibold rounded-lg hover:bg-[#b58d60] transition-colors shadow-sm"
+                                    >
+                                        <Plus size={14} /> Add Experience
+                                    </button>
+                                </div>
+
+                                {experiences.length === 0 ? (
+                                    <div className="py-16 text-center text-[var(--admin-muted)]">
+                                        <div className="w-16 h-16 rounded-full bg-[var(--admin-hover)] flex items-center justify-center mx-auto mb-3">
+                                            <Briefcase size={24} />
+                                        </div>
+                                        <p>ยังไม่มีประวัติการทำงาน</p>
+                                        <button onClick={() => openExpModal()} className="mt-2 text-sm text-[#C5A059] font-medium hover:underline">เพิ่มประวัติการทำงานเลย</button>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-[var(--admin-border)] before:to-transparent">
+                                        {/* Timeline rendering */}
+                                        {experiences.map((exp, idx) => (
+                                            <div key={exp.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                                                {/* Timeline dot */}
+                                                <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-[var(--admin-card)] bg-[var(--admin-hover)] text-[#C5A059] group-hover:bg-[#C5A059] group-hover:text-white transition-colors shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 relative z-10 shadow-sm">
+                                                    <Briefcase size={14} />
+                                                </div>
+
+                                                {/* Card */}
+                                                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-2xl bg-[var(--admin-hover)] border border-[var(--admin-border)] shadow-sm hover:border-[#C5A059]/50 transition-colors">
+                                                    <div className="flex items-start justify-between gap-2 mb-2">
+                                                        <h3 className="font-bold text-[var(--admin-fg)] text-lg leading-tight">{exp.title}</h3>
+                                                        <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button onClick={() => openExpModal(exp)} className="p-1.5 rounded-md hover:bg-[var(--admin-bg)] text-[var(--admin-muted)] hover:text-blue-400"><Edit2 size={14} /></button>
+                                                            <button onClick={() => handleDeleteExp(exp.id)} className="p-1.5 rounded-md hover:bg-[var(--admin-bg)] text-[var(--admin-muted)] hover:text-red-400"><Trash2 size={14} /></button>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-sm font-semibold text-[#b58d60] mb-2">{exp.company}</p>
+                                                    <div className="flex items-center gap-1.5 text-xs text-[var(--admin-muted)] bg-[var(--admin-bg)] inline-flex px-2 py-1 rounded-md mb-2">
+                                                        <Calendar size={12} />
+                                                        <span>{new Date(exp.startDate).getFullYear()} - {exp.endDate ? new Date(exp.endDate).getFullYear() : 'ปัจจุบัน'}</span>
+                                                    </div>
+                                                    {exp.description && (
+                                                        <div className="text-xs text-[var(--admin-muted)] mt-2 border-t border-[var(--admin-border)] pt-2 whitespace-pre-wrap">
+                                                            {exp.description}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {/* ======================= TAB: PROJECTS ======================= */}
                         {activeTab === 'projects' && (
                             <div className="p-6 md:p-8 animate-fade-in space-y-6">
@@ -635,6 +800,52 @@ export default function ResumePage() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Experience Modal */}
+            {showExpModal && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => !savingExp && setShowExpModal(false)} />
+                    <div className="relative w-full max-w-md bg-[var(--admin-card)] rounded-2xl border border-[var(--admin-border)] shadow-2xl animate-modal-enter overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="px-5 py-4 border-b border-[var(--admin-border)] flex items-center justify-between">
+                            <h3 className="font-bold text-[var(--admin-fg)]">{editingExpId ? 'Edit Experience' : 'Add Experience'}</h3>
+                            <button onClick={() => setShowExpModal(false)} className="text-[var(--admin-muted)] hover:text-white"><X size={18} /></button>
+                        </div>
+                        <div className="overflow-y-auto shrink p-5">
+                            <form id="expForm" onSubmit={handleSaveExp} className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-[var(--admin-muted)] mb-1 uppercase tracking-wider">Job Title <span className="text-red-400">*</span></label>
+                                    <input required type="text" value={expForm.title} onChange={e => setExpForm({ ...expForm, title: e.target.value })} className="w-full bg-[var(--admin-hover)] border border-[var(--admin-border)] text-[var(--admin-fg)] px-3 py-2 rounded-xl text-sm outline-none focus:border-[#C5A059] transition-colors" placeholder="e.g. Senior Full Stack Developer" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-[var(--admin-muted)] mb-1 uppercase tracking-wider">Company <span className="text-red-400">*</span></label>
+                                    <input required type="text" value={expForm.company} onChange={e => setExpForm({ ...expForm, company: e.target.value })} className="w-full bg-[var(--admin-hover)] border border-[var(--admin-border)] text-[var(--admin-fg)] px-3 py-2 rounded-xl text-sm outline-none focus:border-[#C5A059]" placeholder="e.g. Tech Innovators Inc." />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-[var(--admin-muted)] mb-1 uppercase tracking-wider">Description</label>
+                                    <textarea rows={4} value={expForm.description} onChange={e => setExpForm({ ...expForm, description: e.target.value })} className="w-full bg-[var(--admin-hover)] border border-[var(--admin-border)] text-[var(--admin-fg)] px-3 py-2 rounded-xl text-sm outline-none focus:border-[#C5A059] resize-none" placeholder="Details about your responsibilities..." />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-[var(--admin-muted)] mb-1 uppercase tracking-wider">Start Date <span className="text-red-400">*</span></label>
+                                        <input required type="date" value={expForm.startDate} onChange={e => setExpForm({ ...expForm, startDate: e.target.value })} className="w-full bg-[var(--admin-hover)] border border-[var(--admin-border)] text-[var(--admin-fg)] px-3 py-2 rounded-xl text-sm outline-none focus:border-[#C5A059]" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-[var(--admin-muted)] mb-1 uppercase tracking-wider">End Date</label>
+                                        <input type="date" value={expForm.endDate} onChange={e => setExpForm({ ...expForm, endDate: e.target.value })} className="w-full bg-[var(--admin-hover)] border border-[var(--admin-border)] text-[var(--admin-fg)] px-3 py-2 rounded-xl text-sm outline-none focus:border-[#C5A059]" />
+                                        <p className="text-[10px] text-[var(--admin-muted)] mt-1">Leave blank if current job</p>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div className="px-5 py-4 border-t border-[var(--admin-border)] flex justify-end gap-2 shrink-0 bg-[var(--admin-card)]">
+                            <button type="button" onClick={() => setShowExpModal(false)} className="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--admin-muted)] bg-[var(--admin-hover)] hover:bg-[var(--admin-border)] transition-colors">Cancel</button>
+                            <button type="submit" form="expForm" disabled={savingExp} className="flex items-center gap-1.5 px-6 py-2 rounded-xl text-sm font-semibold text-white bg-[#C5A059] shadow-lg shadow-[#C5A059]/20 hover:bg-[#b58d60] transition-colors disabled:opacity-70">
+                                {savingExp ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Save
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

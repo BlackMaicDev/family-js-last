@@ -1,4 +1,7 @@
+version: '3.8'
+
 services:
+  # 🐘 Database: เก็บข้อมูล User, Posts, Portfolio และ Gallery
   db:
     image: postgres:16-alpine
     container_name: family-js-db
@@ -10,7 +13,73 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data # ข้อมูล DB อยู่ที่นี่
+    networks:
+      - family-network
+
+  # ⚙️ API: NestJS
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: family-js-api
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://family_admin:family_admin@db:5432/family_db?schema=public
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 3000
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    volumes:
+      # 🌟 จุดสำคัญ: เชื่อมโฟลเดอร์ uploads ในเครื่องเข้ากับ Container
+      # ไฟล์รูปที่อัปโหลดจะถูกเก็บไว้ที่เครื่องลำพูนของคุณจริงๆ ไม่ได้หายไปกับ Container
+      - ./apps/api/public/uploads:/app/public/uploads
+    networks:
+      - family-network
+
+  # 🚀 Web: Next.js (Standalone)
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:3000
+    container_name: family-js-web
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+    depends_on:
+      - api
+    ports:
+      - "3001:3001"
+    networks:
+      - family-network
+
+networks:
+  family-network:
+    driver: bridge
 
 volumes:
-  postgres_data:
+  postgres_data: # จองพื้นที่บน Hard Drive ให้ Database
+
+
+# services:
+#   db:
+#     image: postgres:16-alpine
+#     container_name: family-js-db
+#     restart: always
+#     environment:
+#       POSTGRES_USER: family_admin
+#       POSTGRES_PASSWORD: family_admin
+#       POSTGRES_DB: family_db
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+
+# volumes:
+#   postgres_data:

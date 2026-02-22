@@ -217,7 +217,7 @@ const HomeContent = () => {
       <footer className="py-12 text-center border-t border-stone-200 dark:border-stone-800 mx-8">
         <p className="text-stone-400 dark:text-stone-500 text-sm font-medium tracking-wide">
           © {new Date().getFullYear()} Family JS. <br className="md:hidden" />
-          Body & Mind Development.
+          Body & Mind Development DONG.
         </p>
       </footer>
     </div>

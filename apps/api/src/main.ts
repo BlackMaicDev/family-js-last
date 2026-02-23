@@ -26,12 +26,12 @@ async function bootstrap() {
   // 🔐 CORS สำหรับ HttpOnly Cookie: ต้องระบุ origin ตรงๆ และเปิด credentials: true
   // Browser จะส่ง Cookie มาด้วยทุก Request ก็ต่อเมื่อ allowedOrigins ตรงกัน
   const allowedOrigins = [
-    process.env.FRONTEND_URL,       // จาก env (production)
-    'http://localhost:3000',         // Next.js default port
-    'http://localhost:3001',         // Next.js port เมื่อ API ใช้ 3000
+    process.env.FRONTEND_URL,        // 🌍 production domain (ตั้งใน Coolify/env)
+    'http://localhost:3000',          // local dev: Next.js default
+    'http://localhost:3001',          // local dev: Next.js เมื่อ API ใช้ port 3000
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3001',
-  ].filter(Boolean) as string[];    // กรอง undefined ออก
+  ].filter(Boolean) as string[];     // กรอง undefined ออก (กรณี FRONTEND_URL ไม่ได้ตั้ง)
 
   app.enableCors({
     origin: allowedOrigins,

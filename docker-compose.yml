@@ -28,7 +28,11 @@ services:
       DATABASE_URL: postgresql://family_admin:family_admin@db:5432/family_db?schema=public
       JWT_SECRET: ${JWT_SECRET}
       PORT: 3000
-      FRONTEND_URL: http://localhost:3001  # อนุญาต Frontend (Browser) ให้เรียก API ข้าม origin
+      NODE_ENV: production
+      # 🌍 ตั้งใน .env file:
+      # FRONTEND_URL=https://family-js.com (production)
+      # FRONTEND_URL=http://localhost:3001  (local dev)
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3001}
     depends_on:
       - db
     ports:
@@ -46,13 +50,16 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:3000
+        # 🌍 ตั้งใน .env file:
+        # NEXT_PUBLIC_API_URL=https://api.yourdomain.com (production)
+        # NEXT_PUBLIC_API_URL=http://localhost:3000     (local dev)
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
     container_name: family-js-web
     restart: always
     environment:
       NODE_ENV: production
       PORT: 3001
-      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
     depends_on:
       - api
     ports:

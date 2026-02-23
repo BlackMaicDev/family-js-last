@@ -80,14 +80,14 @@ function CreatePostContent() {
         if (!title.trim() || !content.trim() || !categoryId) { alert('กรุณากรอกข้อมูลให้ครบ'); return; }
         try {
             setSaving(true);
-            const token = localStorage.getItem('token');
             const body: Record<string, unknown> = { title: title.trim(), content, status, categoryId };
             if (thumbnail) body.thumbnail = thumbnail;
             if (rating !== null && showBookFields) body.rating = rating;
             if (bookAuthor.trim() && showBookFields) body.bookAuthor = bookAuthor.trim();
             const res = await fetch(isEditMode ? `${apiUrl}/posts/${editId}` : `${apiUrl}/posts`, {
                 method: isEditMode ? 'PATCH' : 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // 🍪 Cookie auth
                 body: JSON.stringify(body),
             });
             if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message || 'Failed'); }
@@ -103,14 +103,13 @@ function CreatePostContent() {
             const compressedFile = await compressImage(file, { maxSize: 1200, quality: 0.8 }) as File;
 
             // 2. อัพโหลดไฟล์ไป server
-            const token = localStorage.getItem('token');
             const formData = new FormData();
             formData.append('folder', 'posts');
             formData.append('file', compressedFile);
 
             const uploadRes = await fetch(`${apiUrl}/uploads`, {
                 method: 'POST',
-                headers: { Authorization: `Bearer ${token}` },
+                credentials: 'include', // 🍪 Cookie auth
                 body: formData,
             });
 

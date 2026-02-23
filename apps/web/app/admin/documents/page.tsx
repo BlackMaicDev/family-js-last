@@ -53,9 +53,8 @@ export default function DocumentsPage() {
         try {
             setLoading(true);
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
             const res = await fetch(`${apiUrl}/documents`, {
-                headers: { Authorization: `Bearer ${token}` }
+                credentials: 'include', // 🍪 Browser ส่ง Cookie ไปให้ API อัตโนมัติ
             });
             if (!res.ok) throw new Error('Failed to fetch documents');
             const data = await res.json();
@@ -84,7 +83,6 @@ export default function DocumentsPage() {
         try {
             setAddLoading(true);
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
 
             // 1. Upload file
             const formData = new FormData();
@@ -93,9 +91,7 @@ export default function DocumentsPage() {
 
             const uploadRes = await fetch(`${apiUrl}/uploads`, {
                 method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${token}`
-                },
+                credentials: 'include', // 🍪 Cookie auth
                 body: formData,
             });
 
@@ -110,10 +106,8 @@ export default function DocumentsPage() {
             // 2. Save document data
             const res = await fetch(`${apiUrl}/documents`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // 🍪 Cookie auth
                 body: JSON.stringify({
                     title: addForm.title,
                     filePath: fileUrl,
@@ -144,10 +138,9 @@ export default function DocumentsPage() {
         try {
             setDeleteLoading(true);
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
             const res = await fetch(`${apiUrl}/documents/${id}`, {
                 method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` }
+                credentials: 'include', // 🍪 Cookie auth
             });
             if (!res.ok) throw new Error('Failed to delete');
             setDocuments((prev) => prev.filter((d) => d.id !== id));

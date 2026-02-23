@@ -50,9 +50,8 @@ export default function GalleryPage() {
         try {
             setLoading(true);
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
             const res = await fetch(`${apiUrl}/photos/admin/all`, {
-                headers: { Authorization: `Bearer ${token}` }
+                credentials: 'include', // 🍪 Browser ส่ง Cookie ไปให้ API อัตโนมัติ
             });
             if (!res.ok) throw new Error('Failed to fetch gallery');
             setPhotos(await res.json());
@@ -75,7 +74,6 @@ export default function GalleryPage() {
         try {
             setAddLoading(true);
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
 
             let finalUrl = addForm.url;
 
@@ -89,9 +87,7 @@ export default function GalleryPage() {
 
                 const uploadRes = await fetch(`${apiUrl}/uploads`, {
                     method: 'POST',
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    },
+                    credentials: 'include', // 🍪 Cookie auth
                     body: formData,
                 });
 
@@ -106,10 +102,8 @@ export default function GalleryPage() {
 
             const res = await fetch(`${apiUrl}/photos`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // 🍪 Cookie auth
                 body: JSON.stringify({ url: finalUrl, caption: addForm.caption }),
             });
 
@@ -135,10 +129,9 @@ export default function GalleryPage() {
         try {
             setDeleteLoading(true);
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
             const res = await fetch(`${apiUrl}/photos/${id}`, {
                 method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` }
+                credentials: 'include', // 🍪 Cookie auth
             });
             if (!res.ok) throw new Error('Failed to delete');
             setPhotos((prev) => prev.filter((p) => p.id !== id));

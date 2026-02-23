@@ -44,11 +44,18 @@ export default function BlogDetail() {
     useEffect(() => {
         if (typeof window !== 'undefined') {
             setCurrentUrl(window.location.href);
-            const token = localStorage.getItem('token');
-            if (token) {
-                setIsLoggedIn(true);
-            }
         }
+        // 🍪 ตรวจสอบ login status โดยใช้ Cookie (ไม่ต้องดึง token จาก localStorage)
+        const checkLogin = async () => {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+                const res = await fetch(`${apiUrl}/auth/me`, { credentials: 'include' });
+                setIsLoggedIn(res.ok);
+            } catch {
+                setIsLoggedIn(false);
+            }
+        };
+        checkLogin();
     }, [id]);
 
     const fetchComments = async () => {
@@ -132,47 +139,45 @@ export default function BlogDetail() {
         setIsSubmitting(true);
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            let token = localStorage.getItem('token');
-            const refreshToken = localStorage.getItem('refreshToken');
+            const postIdStr = Array.isArray(id) ? id[0] : id;
 
-            const postComment = async (currentToken: string) => {
-                const postIdStr = Array.isArray(id) ? id[0] : id;
-                return fetch(`${apiUrl}/comments`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${currentToken}`
-                    },
-                    body: JSON.stringify({ postId: postIdStr, content: newComment })
-                });
-            };
+            const res = await fetch(`${apiUrl}/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // 🍪 Browser ส่ง Cookie ไปให้ API อัตโนมัติ
+                body: JSON.stringify({ postId: postIdStr, content: newComment })
+            });
 
-            let res = await postComment(token || '');
-
-            if (res.status === 401 && refreshToken) {
-                // Token might be expired, try refreshing
+            if (res.status === 401) {
+                // Cookie หมดอายุ ลอง refresh
                 const refreshRes = await fetch(`${apiUrl}/auth/refresh`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ refresh_token: refreshToken })
+                    credentials: 'include',
                 });
 
-                if (refreshRes.ok) {
-                    const refreshData = await refreshRes.json();
-                    token = refreshData.accessToken;
-                    localStorage.setItem('token', token!);
-                    if (refreshData.refreshToken) {
-                        localStorage.setItem('refreshToken', refreshData.refreshToken);
-                    }
-                    // Retry comment post with new token
-                    res = await postComment(token!);
-                } else {
+                if (!refreshRes.ok) {
                     setIsLoggedIn(false);
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('refreshToken');
                     alert('Session expired. Please log in again.');
                     return;
                 }
+
+                // Retry หลัง refresh
+                const retryRes = await fetch(`${apiUrl}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ postId: postIdStr, content: newComment })
+                });
+
+                if (retryRes.ok) {
+                    setNewComment('');
+                    await fetchComments();
+                } else {
+                    const errorData = await retryRes.json().catch(() => ({ message: 'Cannot parse error response' }));
+                    const errorMessage = Array.isArray(errorData.message) ? errorData.message.join(', ') : errorData.message || JSON.stringify(errorData);
+                    alert(`Failed to post comment. Error: ${errorMessage}`);
+                }
+                return;
             }
 
             if (res.ok) {
@@ -180,12 +185,9 @@ export default function BlogDetail() {
                 await fetchComments();
             } else {
                 const errorData = await res.json().catch(() => ({ message: 'Cannot parse error response' }));
-
-                // Format validation errors (usually arrays from class-validator)
                 const errorMessage = Array.isArray(errorData.message)
                     ? errorData.message.join(', ')
                     : errorData.message || JSON.stringify(errorData);
-
                 alert(`Failed to post comment. Status: ${res.status}. Error: ${errorMessage}`);
             }
         } catch (err) {

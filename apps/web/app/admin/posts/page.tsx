@@ -82,8 +82,8 @@ export default function PostsPage() {
     const handleDelete = async (id: string) => {
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${apiUrl}/posts/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+            // 🍪 Browser ส่ง Cookie ไปให้ API อัตโนมัติ
+            const res = await fetch(`${apiUrl}/posts/${id}`, { method: 'DELETE', credentials: 'include' });
             if (!res.ok) throw new Error('Failed to delete');
             setPosts((prev) => prev.filter((p) => p.id !== id));
             setDeleteConfirmId(null);

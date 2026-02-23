@@ -9,6 +9,7 @@ import { getFullUrl, compressImage } from '../../lib/utils';
 // === Types ===
 interface UserProfile {
     userId: string;
+    sub?: string;        // /auth/me returns sub (JWT payload) instead of userId
     username: string;
     nickname: string;
 }
@@ -99,23 +100,21 @@ export default function ResumePage() {
         try {
             setLoading(true);
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
-            if (!token) throw new Error('No token found');
 
-            // 1. Get Me
-            const meRes = await fetch(`${apiUrl}/auth/profile`, {
-                headers: { Authorization: `Bearer ${token}` }
+            // 1. Get Me ผ่าน /auth/me โดยใช้ Cookie
+            const meRes = await fetch(`${apiUrl}/auth/me`, {
+                credentials: 'include', // 🍪 Cookie auth
             });
             if (!meRes.ok) throw new Error('Failed to load user profile');
             const meData = await meRes.json();
             setCurrentUser(meData);
 
-            const userId = meData.userId;
+            const userId = meData.userId || meData.sub;
 
             // 2. Get Profile
             try {
                 const profRes = await fetch(`${apiUrl}/profiles/${userId}`, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    credentials: 'include',
                 });
                 if (profRes.ok) {
                     const profData = await profRes.json();
@@ -152,7 +151,6 @@ export default function ResumePage() {
 
     // === Helpers ===
     const uploadFile = async (file: File, folder: string) => {
-        const token = localStorage.getItem('token');
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
         // บีบอัดภาพก่อนอัพโหลด (ถ้าเป็นไฟล์ภาพ)
@@ -167,7 +165,7 @@ export default function ResumePage() {
 
         const res = await fetch(`${apiUrl}/uploads`, {
             method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
+            credentials: 'include', // 🍪 Cookie auth
             body: formData
         });
         if (!res.ok) throw new Error('File upload failed');
@@ -180,7 +178,6 @@ export default function ResumePage() {
         try {
             setSavingProfile(true);
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
 
             let finalAvatarUrl = profile.avatarUrl;
             if (profileAvatarFile) {
@@ -189,10 +186,8 @@ export default function ResumePage() {
 
             const res = await fetch(`${apiUrl}/profiles/me`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // 🍪 Cookie auth
                 body: JSON.stringify({ bio: profile.bio, avatarUrl: finalAvatarUrl })
             });
 
@@ -232,7 +227,6 @@ export default function ResumePage() {
         try {
             setSavingEdu(true);
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
 
             const payload = {
                 schoolName: eduForm.schoolName,
@@ -247,17 +241,16 @@ export default function ResumePage() {
 
             const res = await fetch(url, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // 🍪 Cookie auth
                 body: JSON.stringify(payload)
             });
 
             if (!res.ok) throw new Error('Failed to save education');
 
             // Refresh lists
-            const eduRes = await fetch(`${apiUrl}/educations/user/${currentUser?.userId}`);
+            const userId = currentUser?.userId || currentUser?.sub;
+            const eduRes = await fetch(`${apiUrl}/educations/user/${userId}`);
             if (eduRes.ok) setEducations(await eduRes.json());
 
             setShowEduModal(false);
@@ -272,10 +265,9 @@ export default function ResumePage() {
         if (!confirm('ยืนยันลบประวัติการศึกษานี้?')) return;
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
             const res = await fetch(`${apiUrl}/educations/${id}`, {
                 method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` }
+                credentials: 'include', // 🍪 Cookie auth
             });
             if (!res.ok) throw new Error('Delete failed');
             setEducations(prev => prev.filter(e => e.id !== id));
@@ -307,7 +299,6 @@ export default function ResumePage() {
         try {
             setSavingExp(true);
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
 
             const payload = {
                 title: expForm.title,
@@ -322,16 +313,15 @@ export default function ResumePage() {
 
             const res = await fetch(url, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // 🍪 Cookie auth
                 body: JSON.stringify(payload)
             });
 
             if (!res.ok) throw new Error('Failed to save experience');
 
-            const expRes = await fetch(`${apiUrl}/experiences/user/${currentUser?.userId}`);
+            const userId = currentUser?.userId || currentUser?.sub;
+            const expRes = await fetch(`${apiUrl}/experiences/user/${userId}`);
             if (expRes.ok) setExperiences(await expRes.json());
 
             setShowExpModal(false);
@@ -346,10 +336,9 @@ export default function ResumePage() {
         if (!confirm('ยืนยันลบประวัติการทำงานนี้?')) return;
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
             const res = await fetch(`${apiUrl}/experiences/${id}`, {
                 method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` }
+                credentials: 'include', // 🍪 Cookie auth
             });
             if (!res.ok) throw new Error('Delete failed');
             setExperiences(prev => prev.filter(e => e.id !== id));
@@ -383,7 +372,6 @@ export default function ResumePage() {
         try {
             setSavingProj(true);
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
 
             let finalImgUrl = projForm.imageUrl;
             if (projImageFile) {
@@ -402,17 +390,16 @@ export default function ResumePage() {
 
             const res = await fetch(url, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // 🍪 Cookie auth
                 body: JSON.stringify(payload)
             });
 
             if (!res.ok) throw new Error('Failed to save project');
 
             // Refresh lists
-            const pRes = await fetch(`${apiUrl}/projects/user/${currentUser?.userId}`);
+            const userId = currentUser?.userId || currentUser?.sub;
+            const pRes = await fetch(`${apiUrl}/projects/user/${userId}`);
             if (pRes.ok) setProjects(await pRes.json());
 
             setShowProjModal(false);
@@ -427,10 +414,9 @@ export default function ResumePage() {
         if (!confirm('ยืนยันลบผลงานนี้?')) return;
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
             const res = await fetch(`${apiUrl}/projects/${id}`, {
                 method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` }
+                credentials: 'include', // 🍪 Cookie auth
             });
             if (!res.ok) throw new Error('Delete failed');
             setProjects(prev => prev.filter(p => p.id !== id));

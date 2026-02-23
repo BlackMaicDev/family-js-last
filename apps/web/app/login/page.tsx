@@ -13,48 +13,16 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
 
-    // Initial check for automatically logging in if tokens exist
+    // 🍪 ตรวจสอบว่า Login อยู่ไหมโดยใช้ Cookie ที่ Browser เก็บไว้ (ไม่ต้องใช้ localStorage)
     React.useEffect(() => {
         const checkAutoLogin = async () => {
-            let token = localStorage.getItem('token');
-            const refreshToken = localStorage.getItem('refreshToken');
-
-            if (!token && !refreshToken) {
-                setPageInitializing(false);
-                return;
-            }
-
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
             try {
-                // Try fetching profile with current access token
-                let res = await fetch(`${apiUrl}/auth/profile`, {
-                    headers: { Authorization: `Bearer ${token}` }
+                // Browser จะส่ง HttpOnly Cookie ไปให้ API อัตโนมัติผ่าน credentials: 'include'
+                const res = await fetch(`${apiUrl}/auth/me`, {
+                    credentials: 'include', // 🔑 สำคัญมาก! บอก Browser ให้แนบ Cookie ไปด้วย
                 });
-
-                // If unauthorized and we have a refresh token, try refreshing
-                if (res.status === 401 && refreshToken) {
-                    const refreshRes = await fetch(`${apiUrl}/auth/refresh`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ refresh_token: refreshToken })
-                    });
-
-                    if (refreshRes.ok) {
-                        const refreshData = await refreshRes.json();
-                        token = refreshData.accessToken;
-                        localStorage.setItem('token', token!);
-                        if (refreshData.refreshToken) {
-                            localStorage.setItem('refreshToken', refreshData.refreshToken);
-                        }
-                        // Retry fetching profile
-                        res = await fetch(`${apiUrl}/auth/profile`, {
-                            headers: { Authorization: `Bearer ${token}` }
-                        });
-                    } else {
-                        throw new Error('Refresh failed');
-                    }
-                }
 
                 if (res.ok) {
                     const data = await res.json();
@@ -63,17 +31,14 @@ export default function LoginPage() {
                     } else {
                         router.push('/');
                     }
-                    // Don't setPageInitializing to false here as we're redirecting
-                    return;
-                } else {
-                    throw new Error('Profile fetch failed');
+                    return; // หยุดรอ Redirect
                 }
             } catch (err) {
-                console.error('Auto login failed:', err);
-                localStorage.removeItem('token');
-                localStorage.removeItem('refreshToken');
-                setPageInitializing(false);
+                // ถ้า Cookie หมดอายุหรือไม่มี ก็แสดงหน้า Login ตามปกติ
+                console.error('Auto login check failed:', err);
             }
+
+            setPageInitializing(false);
         };
 
         checkAutoLogin();
@@ -90,21 +55,18 @@ export default function LoginPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password }),
+                credentials: 'include', // 🍪 บอก Browser ให้รับและเก็บ Cookie ที่ API ส่งกลับมา
             });
 
             const data = await res.json();
 
             if (!res.ok) {
-                // If the error message is an array (from class-validator), join it
                 const errorMsg = Array.isArray(data.message) ? data.message.join(', ') : data.message;
                 throw new Error(errorMsg || 'ล็อกอินล้มเหลว กรุณาลองใหม่อีกครั้ง');
             }
 
-            // Save tokens to localStorage
-            localStorage.setItem('token', data.accessToken);
-            if (data.refreshToken) {
-                localStorage.setItem('refreshToken', data.refreshToken);
-            }
+            // ✅ ไม่ต้องบันทึก Token ใน localStorage อีกต่อไป
+            // API ส่ง HttpOnly Cookie มาให้ Browser เก็บเองแล้วอัตโนมัติ
 
             // Check role and redirect
             if (data.user?.role === 'ADMIN') {

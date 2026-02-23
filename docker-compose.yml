@@ -28,6 +28,7 @@ services:
       DATABASE_URL: postgresql://family_admin:family_admin@db:5432/family_db?schema=public
       JWT_SECRET: ${JWT_SECRET}
       PORT: 3000
+      FRONTEND_URL: http://localhost:3001  # อนุญาต Frontend (Browser) ให้เรียก API ข้าม origin
     depends_on:
       - db
     ports:

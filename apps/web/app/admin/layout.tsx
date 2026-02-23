@@ -67,63 +67,54 @@ export default function AdminLayout({
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userProfile, setUserProfile] = useState<{ username: string; role: string } | null>(null);
 
-    // Initial check for authentication & admin role
+    // 🍪 ตรวจสอบ Auth โดยใช้ Cookie ที่ Browser เก็บไว้ (ไม่ต้องดึง token จาก localStorage)
     useEffect(() => {
         const checkAuth = async () => {
-            let token = localStorage.getItem('token');
-            const refreshToken = localStorage.getItem('refreshToken');
-
-            if (!token && !refreshToken) {
-                router.push('/login');
-                return;
-            }
-
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
             try {
-                // Helper to fetch profile
-                const fetchProfile = async (currentToken: string) => {
-                    const res = await fetch(`${apiUrl}/auth/profile`, {
-                        headers: { Authorization: `Bearer ${currentToken}` }
+                // Browser จะส่ง HttpOnly Cookie ไปให้ API อัตโนมัติ
+                const res = await fetch(`${apiUrl}/auth/me`, {
+                    credentials: 'include', // 🔑 สำคัญมาก!
+                });
+
+                if (!res.ok) {
+                    // Cookie หมดอายุ หรือไม่ได้ Login ไว้
+                    // ลอง refresh ก่อน redirect
+                    const refreshRes = await fetch(`${apiUrl}/auth/refresh`, {
+                        method: 'POST',
+                        credentials: 'include', // Browser ส่ง refresh_token Cookie ไปด้วย
                     });
-                    if (!res.ok) throw new Error('Invalid token', { cause: res.status });
-                    return res.json();
-                };
 
-                let data;
-                try {
-                    // Try with current access token
-                    data = await fetchProfile(token!);
-                } catch (error: any) {
-                    // If 401 and we have a refresh token, try refreshing
-                    if (error.cause === 401 && refreshToken) {
-                        const refreshRes = await fetch(`${apiUrl}/auth/refresh`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ refresh_token: refreshToken })
-                        });
-
-                        if (!refreshRes.ok) {
-                            throw new Error('Refresh token invalid or expired');
-                        }
-
-                        const refreshData = await refreshRes.json();
-                        token = refreshData.accessToken;
-                        localStorage.setItem('token', token!);
-                        if (refreshData.refreshToken) {
-                            localStorage.setItem('refreshToken', refreshData.refreshToken);
-                        }
-
-                        // Try again with new token
-                        data = await fetchProfile(token!);
-                    } else {
-                        throw error;
+                    if (!refreshRes.ok) {
+                        router.push('/login');
+                        return;
                     }
+
+                    // Refresh สำเร็จ ลองเช็ค profile อีกครั้ง
+                    const retryRes = await fetch(`${apiUrl}/auth/me`, {
+                        credentials: 'include',
+                    });
+
+                    if (!retryRes.ok) {
+                        router.push('/login');
+                        return;
+                    }
+
+                    const data = await retryRes.json();
+                    if (data.role !== 'ADMIN') {
+                        router.push('/');
+                        return;
+                    }
+                    setUserProfile(data);
+                    setIsAuthenticated(true);
+                    return;
                 }
+
+                const data = await res.json();
 
                 // Only allow ADMIN role
                 if (data.role !== 'ADMIN') {
-                    // Not an admin, redirect to home page
                     router.push('/');
                 } else {
                     setUserProfile(data);
@@ -131,8 +122,6 @@ export default function AdminLayout({
                 }
             } catch (err) {
                 console.error('Auth verification failed:', err);
-                localStorage.removeItem('token');
-                localStorage.removeItem('refreshToken');
                 router.push('/login');
             } finally {
                 setIsLoadingAuth(false);
@@ -145,22 +134,16 @@ export default function AdminLayout({
     const handleLogout = async (e: React.MouseEvent) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token');
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
-            if (token) {
-                await fetch(`${apiUrl}/auth/logout`, {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-            }
+            // 🍪 เรียก API เพื่อ ลบ Cookie ฝั่ง Server และ Revoke token ใน Database
+            await fetch(`${apiUrl}/auth/logout`, {
+                method: 'POST',
+                credentials: 'include', // ส่ง access_token Cookie ไปด้วยเพื่อผ่าน JwtAuthGuard
+            });
         } catch (err) {
             console.error('Logout failed:', err);
         } finally {
-            localStorage.removeItem('token');
-            localStorage.removeItem('refreshToken');
+            // ✅ ไม่ต้อง clearItem ใน localStorage อีกต่อไป เพราะ API จะ clearCookie ให้เอง
             router.push('/');
         }
     };

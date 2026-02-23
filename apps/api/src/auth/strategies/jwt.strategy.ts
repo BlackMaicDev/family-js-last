@@ -2,14 +2,21 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Request } from 'express';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(private prisma: PrismaService) {
         super({
-            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+            // 🍪 ดึง Token จาก HttpOnly Cookie ชื่อ 'access_token' แทนการใช้ Bearer Header
+            jwtFromRequest: ExtractJwt.fromExtractors([
+                (request: Request) => {
+                    return request?.cookies?.['access_token'] ?? null;
+                },
+            ]),
             ignoreExpiration: false,
-            secretOrKey: process.env.JWT_SECRET || 'MY_SUPER_SECRET_KEY', // ต้องตรงกับใน AuthModule นะครับ
+            secretOrKey: process.env.JWT_SECRET || 'MY_SUPER_SECRET_KEY',
+            passReqToCallback: false,
         });
     }
 

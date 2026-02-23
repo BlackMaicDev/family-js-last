@@ -71,10 +71,9 @@ export default function UsersPage() {
         try {
             setLoading(true);
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
             // Using admin users endpoint
             const res = await fetch(`${apiUrl}/admin/users`, {
-                headers: { Authorization: `Bearer ${token}` }
+                credentials: 'include', // 🍪 Browser ส่ง Cookie ไปให้ API อัตโนมัติ
             });
             if (!res.ok) throw new Error('Failed to fetch users');
             setUsers(await res.json());
@@ -90,13 +89,13 @@ export default function UsersPage() {
         try {
             setActionLoading(true);
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
             const { type, userId, newValue } = confirmModal;
 
             if (type === 'role') {
                 const res = await fetch(`${apiUrl}/admin/users/${userId}/role`, {
                     method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include', // 🍪 Cookie auth
                     body: JSON.stringify({ role: newValue })
                 });
                 if (!res.ok) throw new Error('Failed to update role');
@@ -105,7 +104,8 @@ export default function UsersPage() {
             else if (type === 'status') {
                 const res = await fetch(`${apiUrl}/admin/users/${userId}/status`, {
                     method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include', // 🍪 Cookie auth
                     body: JSON.stringify({ isActive: newValue })
                 });
                 if (!res.ok) throw new Error('Failed to update status');
@@ -114,7 +114,7 @@ export default function UsersPage() {
             else if (type === 'delete') {
                 const res = await fetch(`${apiUrl}/admin/users/${userId}`, {
                     method: 'DELETE',
-                    headers: { Authorization: `Bearer ${token}` }
+                    credentials: 'include', // 🍪 Cookie auth
                 });
                 if (!res.ok) throw new Error('Failed to delete user');
                 setUsers(users.filter(u => u.id !== userId));

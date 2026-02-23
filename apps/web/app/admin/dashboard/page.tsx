@@ -68,9 +68,9 @@ export default function DashboardPage() {
         try {
             setLoading(true);
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-            const token = localStorage.getItem('token');
+            // 🍪 Browser ส่ง Cookie ไปให้ API อัตโนมัติ ไม่ต้องดึง token จาก localStorage
             const res = await fetch(`${apiUrl}/admin/dashboard`, {
-                headers: { Authorization: `Bearer ${token}` }
+                credentials: 'include',
             });
             if (!res.ok) throw new Error('Failed to fetch dashboard data');
             setDashboardData(await res.json());

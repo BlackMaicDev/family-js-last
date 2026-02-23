@@ -38,9 +38,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # 🌟 จุดสำคัญ: เชื่อมโฟลเดอร์ uploads ในเครื่องเข้ากับ Container
-      # ไฟล์รูปที่อัปโหลดจะถูกเก็บไว้ที่เครื่องลำพูนของคุณจริงๆ ไม่ได้หายไปกับ Container
-      - ./apps/api/public/uploads:/app/public/uploads
+      # 🌟 named volume: ไฟล์รูปจะไม่หายแม้ Coolify redeploy หรือ build ใหม่
+      - uploads_data:/app/apps/api/public/uploads
     networks:
       - family-network
 
@@ -72,7 +71,8 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_data: # จองพื้นที่บน Hard Drive ให้ Database
+  postgres_data:   # ข้อมูล Database อยู่ที่นี่
+  uploads_data:    # ไฟล์รูป/เอกสารที่ upload ไว้ที่นี่ (ไม่หายแม้ redeploy)
 
 
 # services:

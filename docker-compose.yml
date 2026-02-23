@@ -38,8 +38,9 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # 🌟 named volume: ไฟล์รูปจะไม่หายแม้ Coolify redeploy หรือ build ใหม่
-      - uploads_data:/app/apps/api/public/uploads
+      # 🌟 Multer เก็บไฟล์ที่ ./public/uploads (relative to cwd)
+      # WORKDIR = /app → path จริง = /app/public/uploads
+      - uploads_data:/app/public/uploads
     networks:
       - family-network
 

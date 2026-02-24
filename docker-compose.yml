@@ -37,10 +37,10 @@ services:
       - db
     ports:
       - "3000:3000"
-    volumes:
-      # 🌟 Multer เก็บไฟล์ที่ ./public/uploads (relative to cwd)
-      # WORKDIR = /app → path จริง = /app/public/uploads
-      - uploads_data:/app/public/uploads
+    # 🌟 Persistent Storage: ตั้งผ่าน Coolify UI แทน
+    # Coolify → API Service → Persistent Storage → Add:
+    #   Source: /data/family-js/uploads
+    #   Destination: /app/public/uploads
     networks:
       - family-network
 
@@ -73,7 +73,6 @@ networks:
 
 volumes:
   postgres_data:   # ข้อมูล Database อยู่ที่นี่
-  uploads_data:    # ไฟล์รูป/เอกสารที่ upload ไว้ที่นี่ (ไม่หายแม้ redeploy)
 
 
 # services:

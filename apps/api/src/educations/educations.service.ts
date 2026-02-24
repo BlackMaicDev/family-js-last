@@ -18,6 +18,12 @@ export class EducationsService {
         });
     }
 
+    async findAll() {
+        return this.prisma.education.findMany({
+            orderBy: { startDate: 'desc' },
+        });
+    }
+
     async findByUser(userId: string) {
         return this.prisma.education.findMany({
             where: { userId },

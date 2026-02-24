@@ -23,6 +23,7 @@ export default function ResumePage() {
 
     const [experiences, setExperiences] = useState<any[]>([]);
     const [projects, setProjects] = useState<any[]>([]);
+    const [educations, setEducations] = useState<any[]>([]);
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
@@ -32,15 +33,17 @@ export default function ResumePage() {
                 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
                 // Use Promise.all to fetch all at once
-                const [expRes, projRes, profRes] = await Promise.all([
+                const [expRes, projRes, profRes, eduRes] = await Promise.all([
                     axios.get(`${API_URL}/experiences`).catch(() => ({ data: [] })),
                     axios.get(`${API_URL}/projects`).catch(() => ({ data: [] })),
-                    axios.get(`${API_URL}/profiles`).catch(() => ({ data: null }))
+                    axios.get(`${API_URL}/profiles`).catch(() => ({ data: null })),
+                    axios.get(`${API_URL}/educations`).catch(() => ({ data: [] }))
                 ]);
 
                 setExperiences(expRes.data || []);
                 setProjects(projRes.data || []);
                 setProfile(profRes.data || null);
+                setEducations(eduRes.data || []);
             } catch (error) {
                 console.error('Error fetching resume data:', error);
             } finally {
@@ -117,7 +120,7 @@ export default function ResumePage() {
                                 <div className="w-8 h-8 rounded-full bg-white dark:bg-stone-800 print:bg-white border print:border-stone-200 shadow-sm flex items-center justify-center text-[#C5A059] group-hover:scale-110 transition-transform">
                                     <MapPin size={14} />
                                 </div>
-                                <span className="text-sm font-medium">Bangkok, Thailand</span>
+                                <span className="text-sm font-medium">Lamphun, Thailand</span>
                             </div>
                         </div>
 
@@ -127,12 +130,24 @@ export default function ResumePage() {
                                 <GraduationCap className="text-[#C5A059]" size={20} /> Education
                             </h3>
                             <div className="relative pl-4 border-l-2 border-stone-200 dark:border-stone-700 print:border-stone-300 space-y-6">
-                                <div className="relative">
-                                    <span className="absolute -left-[1.35rem] top-1 w-3 h-3 rounded-full bg-[#C5A059] border-2 border-white dark:border-stone-900 print:border-white"></span>
-                                    <h4 className="text-sm font-bold text-stone-800 dark:text-stone-200 print:text-stone-800">B.S. Computer Science</h4>
-                                    <p className="text-xs text-[#C5A059] font-medium mb-1">2018 - 2022</p>
-                                    <p className="text-xs text-stone-500 dark:text-stone-400 print:text-stone-600">University of Technology</p>
-                                </div>
+                                {loading ? (
+                                    <div className="text-stone-400 text-sm animate-pulse">Loading education...</div>
+                                ) : educations.length > 0 ? (
+                                    educations.map((edu) => (
+                                        <div key={edu.id} className="relative">
+                                            <span className="absolute -left-[1.35rem] top-1 w-3 h-3 rounded-full bg-[#C5A059] border-2 border-white dark:border-stone-900 print:border-white"></span>
+                                            <h4 className="text-sm font-bold text-stone-800 dark:text-stone-200 print:text-stone-800">
+                                                {edu.degree}{edu.field ? ` (${edu.field})` : ''}
+                                            </h4>
+                                            <p className="text-xs text-[#C5A059] font-medium mb-1">
+                                                {new Date(edu.startDate).getFullYear()} - {edu.endDate ? new Date(edu.endDate).getFullYear() : 'Present'}
+                                            </p>
+                                            <p className="text-xs text-stone-500 dark:text-stone-400 print:text-stone-600">{edu.schoolName}</p>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-stone-500 text-xs">No education listed yet.</div>
+                                )}
                             </div>
                         </div>
 
@@ -142,38 +157,9 @@ export default function ResumePage() {
                                 <Wrench className="text-[#C5A059]" size={20} /> Core Skills
                             </h3>
 
-                            <div className="space-y-4">
-                                <div>
-                                    <div className="flex justify-between text-xs font-bold mb-1.5 text-stone-700 dark:text-stone-300 print:text-stone-700">
-                                        <span>Frontend Dev</span>
-                                        <span className="text-[#C5A059]">90%</span>
-                                    </div>
-                                    <div className="w-full bg-stone-200 dark:bg-stone-800 print:bg-stone-200 rounded-full h-1.5">
-                                        <div className="bg-[#C5A059] h-1.5 rounded-full" style={{ width: '90%' }}></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div className="flex justify-between text-xs font-bold mb-1.5 text-stone-700 dark:text-stone-300 print:text-stone-700">
-                                        <span>Backend Dev</span>
-                                        <span className="text-[#C5A059]">85%</span>
-                                    </div>
-                                    <div className="w-full bg-stone-200 dark:bg-stone-800 print:bg-stone-200 rounded-full h-1.5">
-                                        <div className="bg-[#C5A059] h-1.5 rounded-full" style={{ width: '85%' }}></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div className="flex justify-between text-xs font-bold mb-1.5 text-stone-700 dark:text-stone-300 print:text-stone-700">
-                                        <span>Database Architecture</span>
-                                        <span className="text-[#C5A059]">80%</span>
-                                    </div>
-                                    <div className="w-full bg-stone-200 dark:bg-stone-800 print:bg-stone-200 rounded-full h-1.5">
-                                        <div className="bg-[#C5A059] h-1.5 rounded-full" style={{ width: '80%' }}></div>
-                                    </div>
-                                </div>
-                            </div>
 
                             <div className="mt-6 flex flex-wrap gap-2">
-                                {['React', 'Next.js', 'NestJS', 'TypeScript', 'Tailwind CSS', 'PostgreSQL', 'Docker'].map(skill => (
+                                {['React', 'Next.js', 'NestJS', 'TypeScript', 'Tailwind CSS', 'PostgreSQL', 'Docker', 'git'].map(skill => (
                                     <span key={skill} className="px-3 py-1 bg-white dark:bg-stone-800 print:bg-white print:border-stone-300 text-stone-600 dark:text-stone-300 print:text-stone-700 text-xs font-bold rounded-lg border border-stone-200/50 dark:border-stone-700/50 shadow-sm print:shadow-none">
                                         {skill}
                                     </span>

@@ -14,6 +14,11 @@ export class EducationsController {
         return this.educationsService.create(createEducationDto, req.user.userId);
     }
 
+    @Get()
+    findAll() {
+        return this.educationsService.findAll();
+    }
+
     @Get('user/:userId')
     findByUser(@Param('userId') userId: string) {
         return this.educationsService.findByUser(userId);

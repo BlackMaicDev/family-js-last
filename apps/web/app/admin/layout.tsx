@@ -21,6 +21,7 @@ import {
     Moon,
     Folder,
     Briefcase,
+    Tag,
 } from 'lucide-react';
 
 // ====== Theme Context ======
@@ -40,6 +41,7 @@ const menuItems = [
     { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'Posts', href: '/admin/posts', icon: FileText },
     { label: 'Create Post', href: '/admin/createPost', icon: PenSquare },
+    { label: 'Categories', href: '/admin/categories', icon: Tag },
     { label: 'Documents', href: '/admin/documents', icon: Folder },
     { label: 'Gallery', href: '/admin/gallery', icon: ImageIcon },
     { label: 'Resume', href: '/admin/resume', icon: Briefcase },

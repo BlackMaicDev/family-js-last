@@ -18,6 +18,10 @@ import { PhotosModule } from './photos/photos.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ExperiencesModule } from './experiences/experiences.module';
+import { DevicesModule } from './devices/devices.module';
+import { LocationsModule } from './locations/locations.module';
+import { AlertsModule } from './alerts/alerts.module';
+import { GeofencesModule } from './geofences/geofences.module';
 
 @Module({
   imports: [
@@ -40,6 +44,11 @@ import { ExperiencesModule } from './experiences/experiences.module';
     UploadsModule,
     DashboardModule,
     ExperiencesModule,
+    // Tracker Family (IoT)
+    DevicesModule,
+    LocationsModule,
+    AlertsModule,
+    GeofencesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

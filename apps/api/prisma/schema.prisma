@@ -44,6 +44,7 @@ model User {
 
   albums    Album[]  // อัลบั้มที่สร้าง
   photos    Photo[]  // รูปภาพที่อัปโหลด
+  devices   Device[] // อุปกรณ์ IoT
 
   @@map("users")
 }
@@ -227,4 +228,81 @@ model Photo {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("photos")
+}
+
+// --- TRACKER FAMILY (IoT) ---
+enum AlertType {
+  SOS
+  LOW_BATTERY
+  MOTION_DETECTED
+  GEOFENCE_ENTER
+  GEOFENCE_EXIT
+}
+
+model Device {
+  id          String     @id @default(uuid())
+  name        String     // เช่น "ลูกน้อย 1"
+  simNumber   String?    // เบอร์โทรศัพท์ของ SIM
+  macAddress  String?    @unique // MAC/IMEI ไว้รับรองบอร์ด
+  battery     Int        @default(100)
+  isOnline    Boolean    @default(false)
+  lastSeen    DateTime?
+
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  locations   Location[]
+  alerts      Alert[]
+  geofences   Geofence[]
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("devices")
+}
+
+model Location {
+  id          String   @id @default(uuid())
+  lat         Float
+  lng         Float
+  speed       Float?
+
+  deviceId    String
+  device      Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  timestamp   DateTime @default(now())
+
+  @@index([deviceId, timestamp])
+  @@map("locations")
+}
+
+model Alert {
+  id          String    @id @default(uuid())
+  type        AlertType
+  message     String?
+  isResolved  Boolean   @default(false)
+
+  deviceId    String
+  device      Device    @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+  resolvedAt  DateTime?
+
+  @@map("alerts")
+}
+
+model Geofence {
+  id          String   @id @default(uuid())
+  name        String   // เช่น "โรงเรียน", "บ้าน"
+  lat         Float
+  lng         Float
+  radius      Float    // รัศมีในหน่วยเมตร
+
+  deviceId    String
+  device      Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("geofences")
 }

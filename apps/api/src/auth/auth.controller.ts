@@ -51,7 +51,7 @@ export class AuthController {
         });
 
         // ส่งแค่ข้อมูล user กลับไป (ไม่ส่ง token ใน body อีกต่อไป)
-        return { message: 'Login successful', user };
+        return { message: 'Login successful', user, accessToken };
     }
 
     @Post('refresh')
@@ -77,7 +77,7 @@ export class AuthController {
             path: '/auth/refresh',
         });
 
-        return { message: 'Token refreshed successfully' };
+        return { message: 'Token refreshed successfully', accessToken };
     }
 
     @UseGuards(JwtAuthGuard)

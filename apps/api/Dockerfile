@@ -48,4 +48,4 @@ RUN mkdir -p /app/apps/api/public/uploads
 ENV NODE_ENV=production
 EXPOSE 3000
 
-CMD ["node", "apps/api/dist/src/main.js"]
+CMD sh -c "cd apps/api && npx prisma db push --skip-generate && cd /app && node apps/api/dist/src/main.js"

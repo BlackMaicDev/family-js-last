@@ -52,7 +52,7 @@ const PostCard = ({ post }: { post: any }) => {
                     </h3>
 
                     <p className="text-stone-500 dark:text-stone-400 text-sm line-clamp-2 leading-relaxed mb-6 font-light flex-grow">
-                        {post.excerpt || post.content?.substring(0, 100) + '...'}
+                        {post.excerpt || (post.content ? post.content.replace(/<[^>]*>?/gm, '').substring(0, 100) + '...' : '')}
                     </p>
 
                     <div className="flex items-center justify-between border-t border-stone-50 pt-4 mt-auto">

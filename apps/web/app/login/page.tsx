@@ -70,9 +70,9 @@ export default function LoginPage() {
 
             // Check role and redirect
             if (data.user?.role === 'ADMIN') {
-                router.push('/admin/dashboard');
+                window.location.href = '/admin/dashboard';
             } else {
-                router.push('/');
+                window.location.href = '/';
             }
         } catch (err: any) {
             setError(err.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');

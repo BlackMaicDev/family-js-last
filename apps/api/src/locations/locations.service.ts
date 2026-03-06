@@ -12,27 +12,50 @@ export class LocationsService {
      * Also checks Geofences and creates alerts if device enters/exits.
      */
     async sync(createLocationDto: CreateLocationDto) {
+        let deviceId = createLocationDto.deviceId;
+
+        // ถ้าลูกข่ายส่งแค่ macAddress มา ให้ไปหา deviceId ให้อัตโนมัติ
+        if (!deviceId && createLocationDto.macAddress) {
+            const device = await this.prisma.device.findUnique({
+                where: { macAddress: createLocationDto.macAddress }
+            });
+            if (!device) {
+                throw new NotFoundException(`Device with MAC ${createLocationDto.macAddress} not found`);
+            }
+            deviceId = device.id;
+        }
+
+        if (!deviceId) {
+            throw new NotFoundException('Either deviceId or macAddress must be provided');
+        }
+
         // 1. Save the location
         const location = await this.prisma.location.create({
             data: {
                 lat: createLocationDto.lat,
                 lng: createLocationDto.lng,
                 speed: createLocationDto.speed,
-                deviceId: createLocationDto.deviceId,
+                deviceId: deviceId,
             },
         });
 
-        // 2. Update device lastSeen & isOnline
+        // 2. Update device lastSeen & isOnline & battery
+        const updateData: any = {
+            isOnline: true,
+            lastSeen: new Date(),
+        };
+
+        if (createLocationDto.battery !== undefined) {
+            updateData.battery = createLocationDto.battery;
+        }
+
         await this.prisma.device.update({
-            where: { id: createLocationDto.deviceId },
-            data: {
-                isOnline: true,
-                lastSeen: new Date(),
-            },
+            where: { id: deviceId },
+            data: updateData,
         });
 
         // 3. Check Geofences
-        await this.checkGeofences(createLocationDto.deviceId, createLocationDto.lat, createLocationDto.lng);
+        await this.checkGeofences(deviceId, createLocationDto.lat, createLocationDto.lng);
 
         return location;
     }

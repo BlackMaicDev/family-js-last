@@ -87,6 +87,11 @@ function ImageToolbar({
     const [width, setWidth] = useState(img.style.width || `${img.naturalWidth}px`);
     const [height, setHeight] = useState(img.style.height || 'auto');
 
+    useEffect(() => {
+        setWidth(img.style.width || (img.naturalWidth ? `${img.naturalWidth}px` : '100%'));
+        setHeight(img.style.height || 'auto');
+    }, [img]);
+
     const applySize = () => {
         img.style.width = width.includes('%') || width.includes('px') ? width : `${width}px`;
         img.style.height = height === 'auto' || !height ? 'auto' : height.includes('px') ? height : `${height}px`;
@@ -154,7 +159,7 @@ function ImageToolbar({
                     <span className="text-[11px] font-bold text-[var(--rte-muted)] uppercase tracking-wider flex items-center gap-1.5">
                         <Maximize2 size={12} /> Image Settings
                     </span>
-                    <button onClick={onClose} className="text-[var(--rte-muted)] hover:text-[var(--rte-fg)] transition-colors">
+                    <button type="button" onClick={onClose} className="text-[var(--rte-muted)] hover:text-[var(--rte-fg)] transition-colors">
                         <X size={14} />
                     </button>
                 </div>
@@ -163,13 +168,13 @@ function ImageToolbar({
                 <div className="mb-3">
                     <p className="text-[10px] font-semibold text-[var(--rte-muted)] uppercase tracking-wider mb-1.5">Alignment</p>
                     <div className="flex gap-1.5">
-                        <button onClick={() => applyAlign('left')} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium bg-[var(--rte-hover)] text-[var(--rte-fg)] hover:bg-[var(--rte-accent)]/15 hover:text-[var(--rte-accent)] transition-all">
+                        <button type="button" onClick={() => applyAlign('left')} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium bg-[var(--rte-hover)] text-[var(--rte-fg)] hover:bg-[var(--rte-accent)]/15 hover:text-[var(--rte-accent)] transition-all">
                             <AlignLeft size={12} /> Left
                         </button>
-                        <button onClick={() => applyAlign('center')} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium bg-[var(--rte-hover)] text-[var(--rte-fg)] hover:bg-[var(--rte-accent)]/15 hover:text-[var(--rte-accent)] transition-all">
+                        <button type="button" onClick={() => applyAlign('center')} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium bg-[var(--rte-hover)] text-[var(--rte-fg)] hover:bg-[var(--rte-accent)]/15 hover:text-[var(--rte-accent)] transition-all">
                             <AlignCenter size={12} /> Center
                         </button>
-                        <button onClick={() => applyAlign('right')} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium bg-[var(--rte-hover)] text-[var(--rte-fg)] hover:bg-[var(--rte-accent)]/15 hover:text-[var(--rte-accent)] transition-all">
+                        <button type="button" onClick={() => applyAlign('right')} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium bg-[var(--rte-hover)] text-[var(--rte-fg)] hover:bg-[var(--rte-accent)]/15 hover:text-[var(--rte-accent)] transition-all">
                             <AlignRight size={12} /> Right
                         </button>
                     </div>
@@ -187,6 +192,7 @@ function ImageToolbar({
                         ].map((p) => (
                             <button
                                 key={p.key}
+                                type="button"
                                 onClick={() => applyPresetSize(p.key)}
                                 className="flex-1 px-2 py-1.5 rounded-lg text-[11px] font-medium bg-[var(--rte-hover)] text-[var(--rte-fg)] hover:bg-[var(--rte-accent)]/15 hover:text-[var(--rte-accent)] transition-all"
                             >
@@ -221,6 +227,7 @@ function ImageToolbar({
                             />
                         </div>
                         <button
+                            type="button"
                             onClick={applySize}
                             className="px-3 py-1.5 bg-[var(--rte-accent)] text-white text-[11px] font-semibold rounded-lg hover:opacity-90 transition-opacity"
                         >
@@ -231,6 +238,7 @@ function ImageToolbar({
 
                 {/* Delete image */}
                 <button
+                    type="button"
                     onClick={() => {
                         img.remove();
                         onClose();

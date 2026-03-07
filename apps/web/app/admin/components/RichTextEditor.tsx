@@ -23,6 +23,8 @@ import {
     Minus,
     Type,
     Palette,
+    Paintbrush,
+    ChevronDown,
     RemoveFormatting,
     X,
     Maximize2,
@@ -72,6 +74,112 @@ function ToolbarButton({
 // --- Separator ---
 function ToolbarSep() {
     return <div className="w-px h-5 bg-[var(--rte-border)] mx-0.5" />;
+}
+
+// --- Preset Colors ---
+const PRESET_COLORS = [
+    // Row 1 - Warm
+    '#EF4444', '#F97316', '#F59E0B', '#EAB308', '#C5A059', '#D97706',
+    // Row 2 - Cool
+    '#22C55E', '#14B8A6', '#06B6D4', '#3B82F6', '#6366F1', '#8B5CF6',
+    // Row 3 - Neutral + Extras
+    '#EC4899', '#F43F5E', '#FFFFFF', '#D1D5DB', '#6B7280', '#000000',
+];
+
+// --- Color Picker Dropdown ---
+function ColorPickerDropdown({
+    currentColor,
+    onSelect,
+    onClose,
+}: {
+    currentColor: string;
+    onSelect: (color: string) => void;
+    onClose: () => void;
+}) {
+    const ref = useRef<HTMLDivElement>(null);
+    const customInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) {
+                onClose();
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [onClose]);
+
+    return (
+        <div ref={ref} className="absolute top-full left-0 mt-1.5 z-50 animate-img-toolbar">
+            <div className="bg-[var(--rte-toolbar-bg)] border border-[var(--rte-border)] rounded-xl shadow-2xl shadow-black/40 p-3 min-w-[220px] backdrop-blur-md">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-bold text-[var(--rte-muted)] uppercase tracking-wider flex items-center gap-1.5">
+                        <Paintbrush size={12} /> สีตัวอักษร
+                    </span>
+                    <button type="button" onClick={onClose} className="text-[var(--rte-muted)] hover:text-[var(--rte-fg)] transition-colors">
+                        <X size={14} />
+                    </button>
+                </div>
+
+                {/* Color Grid */}
+                <div className="grid grid-cols-6 gap-1.5 mb-3">
+                    {PRESET_COLORS.map((color) => (
+                        <button
+                            key={color}
+                            type="button"
+                            onClick={() => {
+                                onSelect(color);
+                                onClose();
+                            }}
+                            title={color}
+                            className={`
+                                w-7 h-7 rounded-lg transition-all duration-150 border-2
+                                hover:scale-110 hover:shadow-md
+                                ${currentColor.toUpperCase() === color.toUpperCase()
+                                    ? 'border-[var(--rte-accent)] ring-2 ring-[var(--rte-accent)]/30 scale-110'
+                                    : color === '#FFFFFF' || color === '#ffffff'
+                                        ? 'border-[var(--rte-border)]'
+                                        : 'border-transparent'
+                                }
+                            `}
+                            style={{ backgroundColor: color }}
+                        />
+                    ))}
+                </div>
+
+                {/* Custom Color */}
+                <div className="flex items-center gap-2 pt-2 border-t border-[var(--rte-border)]">
+                    <span className="text-[10px] font-semibold text-[var(--rte-muted)] uppercase tracking-wider whitespace-nowrap">กำหนดเอง</span>
+                    <div
+                        className="relative w-7 h-7 rounded-lg overflow-hidden border border-[var(--rte-border)] cursor-pointer hover:border-[var(--rte-accent)] transition-colors flex-shrink-0"
+                        onClick={() => customInputRef.current?.click()}
+                    >
+                        <input
+                            ref={customInputRef}
+                            type="color"
+                            defaultValue={currentColor || '#ffffff'}
+                            onChange={(e) => {
+                                onSelect(e.target.value);
+                                onClose();
+                            }}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        <div className="w-full h-full" style={{ backgroundColor: currentColor || '#ffffff' }} />
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            onSelect('');
+                            onClose();
+                        }}
+                        className="ml-auto text-[10px] font-medium text-[var(--rte-muted)] hover:text-red-400 transition-colors"
+                    >
+                        ล้างสี
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 // --- Image Toolbar Popup ---
@@ -263,6 +371,8 @@ export default function RichTextEditor({
     const [isFocused, setIsFocused] = useState(false);
     const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set());
     const [selectedImage, setSelectedImage] = useState<HTMLImageElement | null>(null);
+    const [showColorPicker, setShowColorPicker] = useState(false);
+    const [currentTextColor, setCurrentTextColor] = useState('');
 
     // Set initial content once
     useEffect(() => {
@@ -316,6 +426,11 @@ export default function RichTextEditor({
         if (document.queryCommandState('justifyLeft')) formats.add('justifyLeft');
         if (document.queryCommandState('justifyCenter')) formats.add('justifyCenter');
         if (document.queryCommandState('justifyRight')) formats.add('justifyRight');
+        // Track current text color
+        const color = document.queryCommandValue('foreColor');
+        if (color) {
+            setCurrentTextColor(color);
+        }
         setActiveFormats(formats);
     }, []);
 
@@ -439,6 +554,48 @@ export default function RichTextEditor({
                 <ToolbarButton icon={Italic} label="Italic (Ctrl+I)" onClick={() => execCmd('italic')} active={activeFormats.has('italic')} />
                 <ToolbarButton icon={Underline} label="Underline (Ctrl+U)" onClick={() => execCmd('underline')} active={activeFormats.has('underline')} />
                 <ToolbarButton icon={Strikethrough} label="Strikethrough" onClick={() => execCmd('strikeThrough')} active={activeFormats.has('strikeThrough')} />
+
+                {/* Text color */}
+                <div className="relative">
+                    <button
+                        type="button"
+                        onClick={() => setShowColorPicker(!showColorPicker)}
+                        title="สีตัวอักษร"
+                        className={`
+                            flex items-center gap-0.5 p-1.5 rounded-lg transition-all duration-150
+                            ${showColorPicker
+                                ? 'bg-[var(--rte-accent)]/15 text-[var(--rte-accent)]'
+                                : 'text-[var(--rte-muted)] hover:text-[var(--rte-fg)] hover:bg-[var(--rte-hover)]'
+                            }
+                        `}
+                    >
+                        <div className="relative">
+                            <Paintbrush size={16} />
+                            {currentTextColor && (
+                                <div
+                                    className="absolute -bottom-0.5 left-0.5 right-0.5 h-[3px] rounded-full"
+                                    style={{ backgroundColor: currentTextColor }}
+                                />
+                            )}
+                        </div>
+                        <ChevronDown size={10} />
+                    </button>
+                    {showColorPicker && (
+                        <ColorPickerDropdown
+                            currentColor={currentTextColor}
+                            onSelect={(color) => {
+                                if (color) {
+                                    execCmd('foreColor', color);
+                                    setCurrentTextColor(color);
+                                } else {
+                                    execCmd('removeFormat');
+                                    setCurrentTextColor('');
+                                }
+                            }}
+                            onClose={() => setShowColorPicker(false)}
+                        />
+                    )}
+                </div>
 
                 <ToolbarSep />
 

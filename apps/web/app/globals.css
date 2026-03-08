@@ -100,3 +100,233 @@ body {
 .hover-lift:hover {
   transform: translateY(-5px);
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Print Styles — Professional Resume on A4
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm 8mm;
+  }
+
+  /* Reset everything to clean print defaults */
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  html, body {
+    background: white !important;
+    color: #1c1917 !important;
+    font-size: 11px !important;
+    line-height: 1.45 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide non-print elements */
+  .print\\:hidden,
+  nav,
+  footer,
+  .fixed,
+  button:not(.print-visible) {
+    display: none !important;
+  }
+
+  /* Resume wrapper */
+  .resume-wrapper {
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto !important;
+    max-width: 100% !important;
+  }
+
+  /* Resume card */
+  .resume-card {
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: white !important;
+    backdrop-filter: none !important;
+    max-width: 100% !important;
+  }
+
+  /* Gold accent bar at top */
+  .resume-gold-bar {
+    height: 3px !important;
+    background: linear-gradient(to right, #C5A059, #E2C992, #C5A059) !important;
+  }
+
+  /* Layout: 2 columns */
+  .resume-layout {
+    display: flex !important;
+    flex-direction: row !important;
+    background: white !important;
+  }
+
+  /* Left sidebar */
+  .resume-sidebar {
+    width: 33% !important;
+    background: #fafaf9 !important;
+    padding: 20px 16px !important;
+    border-right: 1px solid #e7e5e4 !important;
+    gap: 18px !important;
+  }
+
+  /* Right content */
+  .resume-main {
+    width: 67% !important;
+    padding: 20px 24px !important;
+    background: white !important;
+  }
+
+  /* Profile photo */
+  .resume-photo {
+    width: 90px !important;
+    height: 90px !important;
+    border-width: 2px !important;
+    border-color: #e7e5e4 !important;
+  }
+
+  /* Name & title */
+  .resume-name {
+    font-size: 20px !important;
+    color: #1c1917 !important;
+    line-height: 1.1 !important;
+    margin-bottom: 2px !important;
+  }
+  .resume-title {
+    font-size: 10px !important;
+    color: #C5A059 !important;
+  }
+
+  /* Section headings */
+  .resume-section-heading {
+    font-size: 14px !important;
+    color: #1c1917 !important;
+    margin-bottom: 10px !important;
+    padding-bottom: 4px !important;
+    border-bottom: 1px solid #e7e5e4 !important;
+    page-break-after: avoid !important;
+  }
+
+  .resume-sidebar .resume-section-heading {
+    font-size: 12px !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Contact items */
+  .resume-contact-item {
+    gap: 8px !important;
+    margin-bottom: 4px !important;
+  }
+  .resume-contact-icon {
+    width: 20px !important;
+    height: 20px !important;
+    border: none !important;
+    background: transparent !important;
+  }
+  .resume-contact-text {
+    font-size: 10px !important;
+    color: #44403c !important;
+  }
+
+  /* Timeline (education & experience) */
+  .resume-timeline {
+    border-left-width: 1px !important;
+    border-color: #d6d3d1 !important;
+    padding-left: 12px !important;
+    gap: 10px !important;
+  }
+  .resume-timeline-dot {
+    width: 8px !important;
+    height: 8px !important;
+    left: -16.5px !important;
+    border-width: 1.5px !important;
+  }
+
+  /* Skill tags */
+  .resume-skill-tag {
+    padding: 2px 8px !important;
+    font-size: 9px !important;
+    border: 1px solid #d6d3d1 !important;
+    background: white !important;
+    color: #44403c !important;
+    border-radius: 4px !important;
+  }
+
+  /* Experience items */
+  .resume-exp-item {
+    padding-left: 14px !important;
+    border-left-width: 1px !important;
+    margin-bottom: 12px !important;
+    page-break-inside: avoid !important;
+  }
+  .resume-exp-title {
+    font-size: 13px !important;
+    color: #1c1917 !important;
+  }
+  .resume-exp-date {
+    font-size: 9px !important;
+    padding: 1px 8px !important;
+  }
+  .resume-exp-company {
+    font-size: 10px !important;
+    color: #78716c !important;
+    margin-bottom: 6px !important;
+  }
+  .resume-exp-desc {
+    font-size: 10px !important;
+    color: #44403c !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Project cards */
+  .resume-project-card {
+    padding: 10px !important;
+    border: 1px solid #e7e5e4 !important;
+    border-radius: 8px !important;
+    background: white !important;
+    page-break-inside: avoid !important;
+  }
+  .resume-project-img {
+    display: none !important;
+  }
+  .resume-project-title {
+    font-size: 11px !important;
+    color: #1c1917 !important;
+  }
+  .resume-project-desc {
+    font-size: 9px !important;
+    color: #57534e !important;
+  }
+
+  /* About/Profile section */
+  .resume-about {
+    font-size: 11px !important;
+    color: #44403c !important;
+    line-height: 1.6 !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* Spacing reductions for print */
+  .resume-section {
+    margin-bottom: 16px !important;
+  }
+
+  /* Links show URL */
+  a[href]::after {
+    content: none !important;
+  }
+
+  /* Prevent page breaks inside sections */
+  .resume-section {
+    page-break-inside: avoid !important;
+  }
+}

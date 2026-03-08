@@ -66,10 +66,10 @@ export function Navbar() {
             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
             <span className="text-sm font-medium">{t('nav.back')}</span>
           </Link>
-          <div className="text-sm font-bold text-stone-800 tracking-tight uppercase opacity-50 hidden md:block">
-            Scale & Skill
+          <div className="text-sm font-bold text-stone-800 dark:text-stone-100 tracking-tight uppercase opacity-50 hidden md:block">
+            Family JS
           </div>
-          <div className="flex items-center gap-3 text-stone-400">
+          <div className="flex items-center gap-3 text-stone-400 dark:text-stone-600">
             <LanguageToggle />
             {/* <button className="hover:text-[#C5A059] transition-colors"><Bookmark size={20} /></button>
             <button className="hover:text-[#C5A059] transition-colors"><Share2 size={20} /></button> */}

@@ -22,6 +22,6 @@ export class CreateDeviceDto {
     isOnline?: boolean;
 
     @IsString()
-    @IsNotEmpty()
-    userId: string;
+    @IsOptional()
+    userId?: string;
 }

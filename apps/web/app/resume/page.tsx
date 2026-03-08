@@ -55,10 +55,10 @@ export default function ResumePage() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-[#FAFAF9] dark:bg-[#1c1917] font-sans selection:bg-[#C5A059]/20 selection:text-[#8A6E3E] transition-colors duration-500 py-24 px-4 sm:px-8">
+        <div className="resume-wrapper min-h-screen bg-[#FAFAF9] dark:bg-[#1c1917] font-sans selection:bg-[#C5A059]/20 selection:text-[#8A6E3E] transition-colors duration-500 py-24 px-4 sm:px-8">
 
             {/* Background Elements */}
-            <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+            <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0 print:hidden">
                 <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-[#C5A059]/10 rounded-full blur-[120px] animate-pulse-slow"></div>
                 <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-stone-500/5 dark:bg-stone-400/5 rounded-full blur-[120px] animate-float"></div>
             </div>
@@ -75,18 +75,18 @@ export default function ResumePage() {
 
             <div
                 ref={resumeRef}
-                className="max-w-5xl mx-auto bg-white/80 dark:bg-[#292524]/80 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_8px_40px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.5)] border border-white/50 dark:border-stone-700/50 overflow-hidden relative z-10 animate-in fade-in zoom-in-95 duration-1000 print:shadow-none print:border-none print:bg-white"
+                className="resume-card max-w-5xl mx-auto bg-white/80 dark:bg-[#292524]/80 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_8px_40px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.5)] border border-white/50 dark:border-stone-700/50 overflow-hidden relative z-10 animate-in fade-in zoom-in-95 duration-1000"
             >
                 {/* Top Header Pattern */}
-                <div className="h-4 w-full bg-gradient-to-r from-[#C5A059] via-[#E2C992] to-[#C5A059] print:hidden"></div>
+                <div className="resume-gold-bar h-4 w-full bg-gradient-to-r from-[#C5A059] via-[#E2C992] to-[#C5A059] print:h-[3px]"></div>
 
-                <div className="flex flex-col md:flex-row print:flex-row print:bg-white print:text-black">
+                <div className="resume-layout flex flex-col md:flex-row">
                     {/* LEFT COLUMN - Profile & Sidebar */}
-                    <div className="w-full md:w-[35%] bg-stone-50/50 dark:bg-stone-900/30 print:bg-stone-50 p-8 md:p-10 border-r border-stone-200/50 dark:border-stone-700/50 flex flex-col gap-10">
+                    <div className="resume-sidebar w-full md:w-[35%] bg-stone-50/50 dark:bg-stone-900/30 p-8 md:p-10 border-r border-stone-200/50 dark:border-stone-700/50 flex flex-col gap-10">
 
                         {/* Photo & Identity */}
-                        <div className="flex flex-col items-center md:items-start space-y-5">
-                            <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-white dark:border-stone-800 shadow-xl group print:shadow-none print:border-stone-200">
+                        <div className="flex flex-col items-center md:items-start space-y-5 print:space-y-3 print:items-start">
+                            <div className="resume-photo relative w-40 h-40 rounded-full overflow-hidden border-4 border-white dark:border-stone-800 shadow-xl group print:w-[90px] print:h-[90px]">
                                 <Image
                                     src={profile?.avatarUrl ? getFullUrl(profile.avatarUrl) : '/images/logo1.png'}
                                     alt="Profile"
@@ -95,47 +95,47 @@ export default function ResumePage() {
                                 />
                             </div>
                             <div className="text-center md:text-left print:text-left text-stone-800 dark:text-stone-100">
-                                <h1 className="text-3xl font-black text-stone-800 dark:text-stone-100 print:text-stone-900 tracking-tight leading-none mb-2">
+                                <h1 className="resume-name text-3xl font-black text-stone-800 dark:text-stone-100 tracking-tight leading-none mb-2">
                                     {profile?.user?.nickname ? profile.user.nickname.toUpperCase() : 'FAMILY JS'}
                                 </h1>
-                                <h2 className="text-[#C5A059] font-bold tracking-widest uppercase text-sm print:text-[#C5A059]">Full Stack Developer</h2>
+                                <h2 className="resume-title text-[#C5A059] font-bold tracking-widest uppercase text-sm">Full Stack Developer</h2>
                             </div>
                         </div>
 
                         {/* Contact Info */}
-                        <div className="space-y-4 text-stone-600 dark:text-stone-300 print:text-stone-700">
-                            <div className="flex items-center gap-3 group">
-                                <div className="w-8 h-8 rounded-full bg-white dark:bg-stone-800 print:bg-white border print:border-stone-200 shadow-sm flex items-center justify-center text-[#C5A059] group-hover:scale-110 transition-transform">
+                        <div className="space-y-4 text-stone-600 dark:text-stone-300 print:space-y-2">
+                            <div className="resume-contact-item flex items-center gap-3 group">
+                                <div className="resume-contact-icon w-8 h-8 rounded-full bg-white dark:bg-stone-800 border shadow-sm flex items-center justify-center text-[#C5A059] group-hover:scale-110 transition-transform print:w-5 print:h-5 print:border-0 print:shadow-none print:bg-transparent">
                                     <Mail size={14} />
                                 </div>
-                                <span className="text-sm font-medium">{profile?.user?.email || 'hello@family-js.com'}</span>
+                                <span className="resume-contact-text text-sm font-medium">{profile?.user?.email || 'hello@family-js.com'}</span>
                             </div>
-                            <div className="flex items-center gap-3 group">
-                                <div className="w-8 h-8 rounded-full bg-white dark:bg-stone-800 print:bg-white border print:border-stone-200 shadow-sm flex items-center justify-center text-[#C5A059] group-hover:scale-110 transition-transform">
+                            <div className="resume-contact-item flex items-center gap-3 group">
+                                <div className="resume-contact-icon w-8 h-8 rounded-full bg-white dark:bg-stone-800 border shadow-sm flex items-center justify-center text-[#C5A059] group-hover:scale-110 transition-transform print:w-5 print:h-5 print:border-0 print:shadow-none print:bg-transparent">
                                     <Globe size={14} />
                                 </div>
-                                <span className="text-sm font-medium">www.family-js.com</span>
+                                <span className="resume-contact-text text-sm font-medium">www.family-js.com</span>
                             </div>
-                            <div className="flex items-center gap-3 group">
-                                <div className="w-8 h-8 rounded-full bg-white dark:bg-stone-800 print:bg-white border print:border-stone-200 shadow-sm flex items-center justify-center text-[#C5A059] group-hover:scale-110 transition-transform">
+                            <div className="resume-contact-item flex items-center gap-3 group">
+                                <div className="resume-contact-icon w-8 h-8 rounded-full bg-white dark:bg-stone-800 border shadow-sm flex items-center justify-center text-[#C5A059] group-hover:scale-110 transition-transform print:w-5 print:h-5 print:border-0 print:shadow-none print:bg-transparent">
                                     <MapPin size={14} />
                                 </div>
-                                <span className="text-sm font-medium">Lamphun, Thailand</span>
+                                <span className="resume-contact-text text-sm font-medium">Lamphun, Thailand</span>
                             </div>
                         </div>
 
                         {/* Education */}
-                        <div>
-                            <h3 className="text-lg font-bold text-stone-800 dark:text-stone-100 print:text-stone-900 flex items-center gap-2 mb-6 uppercase tracking-wider">
+                        <div className="resume-section">
+                            <h3 className="resume-section-heading text-lg font-bold text-stone-800 dark:text-stone-100 flex items-center gap-2 mb-6 uppercase tracking-wider">
                                 <GraduationCap className="text-[#C5A059]" size={20} /> Education
                             </h3>
-                            <div className="relative pl-4 border-l-2 border-stone-200 dark:border-stone-700 print:border-stone-300 space-y-6">
+                            <div className="resume-timeline relative pl-4 border-l-2 border-stone-200 dark:border-stone-700 space-y-6 print:space-y-3">
                                 {loading ? (
                                     <div className="text-stone-400 text-sm animate-pulse">Loading education...</div>
                                 ) : educations.length > 0 ? (
                                     educations.map((edu) => (
                                         <div key={edu.id} className="relative">
-                                            <span className="absolute -left-[1.35rem] top-1 w-3 h-3 rounded-full bg-[#C5A059] border-2 border-white dark:border-stone-900 print:border-white"></span>
+                                            <span className="resume-timeline-dot absolute -left-[1.35rem] top-1 w-3 h-3 rounded-full bg-[#C5A059] border-2 border-white dark:border-stone-900"></span>
                                             <h4 className="text-sm font-bold text-stone-800 dark:text-stone-200 print:text-stone-800">
                                                 {edu.degree}{edu.field ? ` (${edu.field})` : ''}
                                             </h4>
@@ -152,15 +152,14 @@ export default function ResumePage() {
                         </div>
 
                         {/* Skills */}
-                        <div>
-                            <h3 className="text-lg font-bold text-stone-800 dark:text-stone-100 print:text-stone-900 flex items-center gap-2 mb-6 uppercase tracking-wider">
+                        <div className="resume-section">
+                            <h3 className="resume-section-heading text-lg font-bold text-stone-800 dark:text-stone-100 flex items-center gap-2 mb-6 uppercase tracking-wider">
                                 <Wrench className="text-[#C5A059]" size={20} /> Core Skills
                             </h3>
 
-
-                            <div className="mt-6 flex flex-wrap gap-2">
+                            <div className="mt-6 flex flex-wrap gap-2 print:gap-1.5 print:mt-2">
                                 {['React', 'Next.js', 'NestJS', 'TypeScript', 'Tailwind CSS', 'PostgreSQL', 'Docker', 'git'].map(skill => (
-                                    <span key={skill} className="px-3 py-1 bg-white dark:bg-stone-800 print:bg-white print:border-stone-300 text-stone-600 dark:text-stone-300 print:text-stone-700 text-xs font-bold rounded-lg border border-stone-200/50 dark:border-stone-700/50 shadow-sm print:shadow-none">
+                                    <span key={skill} className="resume-skill-tag px-3 py-1 bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 text-xs font-bold rounded-lg border border-stone-200/50 dark:border-stone-700/50 shadow-sm">
                                         {skill}
                                     </span>
                                 ))}
@@ -170,14 +169,14 @@ export default function ResumePage() {
                     </div>
 
                     {/* RIGHT COLUMN - Main Content */}
-                    <div className="w-full md:w-[65%] p-8 md:p-12 lg:p-16 print:bg-white">
+                    <div className="resume-main w-full md:w-[65%] p-8 md:p-12 lg:p-16">
 
                         {/* About Me */}
-                        <div className="mb-12">
-                            <h3 className="text-2xl font-black text-stone-800 dark:text-stone-100 print:text-stone-900 flex items-center gap-3 mb-6 uppercase tracking-wider">
+                        <div className="resume-section mb-12">
+                            <h3 className="resume-section-heading text-2xl font-black text-stone-800 dark:text-stone-100 flex items-center gap-3 mb-6 uppercase tracking-wider">
                                 <User className="text-[#C5A059]" size={24} /> Profile
                             </h3>
-                            <p className="text-stone-500 dark:text-stone-400 print:text-stone-700 leading-relaxed font-light text-sm md:text-base whitespace-pre-wrap">
+                            <p className="resume-about text-stone-500 dark:text-stone-400 leading-relaxed font-light text-sm md:text-base whitespace-pre-wrap">
                                 {profile?.bio || (
                                     <>
                                         Passionate Full Stack Developer with a strong emphasis on building scalable, performant, and beautifully designed web applications.
@@ -189,36 +188,36 @@ export default function ResumePage() {
                         </div>
 
                         {/* Experience */}
-                        <div className="mb-12">
-                            <h3 className="text-2xl font-black text-stone-800 dark:text-stone-100 print:text-stone-900 flex items-center gap-3 mb-8 uppercase tracking-wider">
+                        <div className="resume-section mb-12">
+                            <h3 className="resume-section-heading text-2xl font-black text-stone-800 dark:text-stone-100 flex items-center gap-3 mb-8 uppercase tracking-wider">
                                 <Briefcase className="text-[#C5A059]" size={24} /> Experience
                             </h3>
 
-                            <div className="space-y-10">
+                            <div className="space-y-10 print:space-y-4">
                                 {loading ? (
                                     <div className="text-stone-400 text-sm animate-pulse">Loading experiences...</div>
                                 ) : experiences.length > 0 ? (
                                     experiences.map((exp, index) => (
-                                        <div key={exp.id} className="relative pl-6 border-l-2 border-stone-100 dark:border-stone-800 print:border-stone-200 group">
-                                            <span className={`absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-white dark:bg-stone-900 print:bg-white border-2 ${index === 0 ? 'border-[#C5A059]' : 'border-stone-300 dark:border-stone-600 print:border-stone-300'} group-hover:scale-125 transition-transform duration-300 flex items-center justify-center`}>
+                                        <div key={exp.id} className="resume-exp-item relative pl-6 border-l-2 border-stone-100 dark:border-stone-800 group">
+                                            <span className={`resume-timeline-dot absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-white dark:bg-stone-900 border-2 ${index === 0 ? 'border-[#C5A059]' : 'border-stone-300 dark:border-stone-600'} group-hover:scale-125 transition-transform duration-300 flex items-center justify-center`}>
                                                 {index === 0 && <span className="w-1.5 h-1.5 bg-[#C5A059] rounded-full"></span>}
                                             </span>
 
                                             <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
-                                                <h4 className="text-lg font-bold text-stone-800 dark:text-stone-200 print:text-stone-800">{exp.title}</h4>
-                                                <span className={`text-xs font-bold px-3 py-1 rounded-full inline-block mt-2 md:mt-0 w-max ${index === 0 ? 'bg-[#C5A059]/10 text-[#C5A059] print:bg-white print:border print:border-[#C5A059] print:text-[#C5A059]' : 'bg-stone-100 dark:bg-stone-800 print:bg-white print:border print:border-stone-300 text-stone-500 dark:text-stone-400 print:text-stone-600'}`}>
+                                                <h4 className="resume-exp-title text-lg font-bold text-stone-800 dark:text-stone-200">{exp.title}</h4>
+                                                <span className={`resume-exp-date text-xs font-bold px-3 py-1 rounded-full inline-block mt-2 md:mt-0 w-max ${index === 0 ? 'bg-[#C5A059]/10 text-[#C5A059]' : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400'}`}>
                                                     {new Date(exp.startDate).getFullYear()} - {exp.endDate ? new Date(exp.endDate).getFullYear() : 'Present'}
                                                 </span>
                                             </div>
-                                            <p className="text-sm font-medium text-stone-500 dark:text-stone-400 print:text-stone-600 mb-4 flex items-center gap-1.5">
+                                            <p className="resume-exp-company text-sm font-medium text-stone-500 dark:text-stone-400 mb-4 flex items-center gap-1.5">
                                                 {index === 0 ? <Globe size={14} /> : <Layout size={14} />} {exp.company}
                                             </p>
 
                                             {exp.description && (
-                                                <ul className="space-y-2">
+                                                <ul className="space-y-2 print:space-y-1">
                                                     {exp.description.split('\n').map((line: string, i: number) => line.trim() ? (
-                                                        <li key={i} className="text-sm text-stone-500 dark:text-stone-400 print:text-stone-700 leading-relaxed flex items-start gap-2">
-                                                            <ChevronRight size={16} className={`${index === 0 ? 'text-[#C5A059] opacity-80' : 'text-stone-400'} shrink-0 mt-0.5`} />
+                                                        <li key={i} className="resume-exp-desc text-sm text-stone-500 dark:text-stone-400 leading-relaxed flex items-start gap-2">
+                                                            <ChevronRight size={16} className={`${index === 0 ? 'text-[#C5A059] opacity-80' : 'text-stone-400'} shrink-0 mt-0.5 print:w-3 print:h-3`} />
                                                             {line.trim()}
                                                         </li>
                                                     ) : null)}
@@ -233,44 +232,44 @@ export default function ResumePage() {
                         </div>
 
                         {/* Side Projects / Accomplishments */}
-                        <div>
-                            <h3 className="text-2xl font-black text-stone-800 dark:text-stone-100 print:text-stone-900 flex items-center gap-3 mb-6 uppercase tracking-wider">
+                        <div className="resume-section">
+                            <h3 className="resume-section-heading text-2xl font-black text-stone-800 dark:text-stone-100 flex items-center gap-3 mb-6 uppercase tracking-wider">
                                 <Terminal className="text-[#C5A059]" size={24} /> Featured Projects
                             </h3>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 print:gap-2">
                                 {loading ? (
                                     <div className="text-stone-400 text-sm animate-pulse">Loading projects...</div>
                                 ) : projects.length > 0 ? (
                                     projects.map((proj) => (
                                         <div key={proj.id} className="group cursor-pointer">
                                             {proj.link ? (
-                                                <Link href={proj.link} target="_blank" className="block p-5 rounded-2xl bg-white dark:bg-stone-800/50 print:bg-white border border-stone-100 dark:border-stone-700 print:border-stone-300 hover:border-[#C5A059]/50 transition-colors shadow-sm print:shadow-none h-full relative overflow-hidden">
+                                                <Link href={proj.link} target="_blank" className="resume-project-card block p-5 rounded-2xl bg-white dark:bg-stone-800/50 border border-stone-100 dark:border-stone-700 hover:border-[#C5A059]/50 transition-colors shadow-sm h-full relative overflow-hidden">
                                                     {proj.imageUrl && (
-                                                        <div className="w-full h-32 mb-4 rounded-xl overflow-hidden relative">
+                                                        <div className="resume-project-img w-full h-32 mb-4 rounded-xl overflow-hidden relative print:hidden">
                                                             <Image src={getFullUrl(proj.imageUrl)} alt={proj.title} fill className="object-cover group-hover:scale-105 transition-transform" />
                                                         </div>
                                                     )}
                                                     <div className="flex items-center justify-between mb-3 mt-1">
-                                                        <h4 className="font-bold text-stone-800 dark:text-stone-100 print:text-stone-800 group-hover:text-[#C5A059] transition-colors line-clamp-1">{proj.title}</h4>
-                                                        <Code2 size={16} className="text-stone-400 print:text-stone-500 shrink-0" />
+                                                        <h4 className="resume-project-title font-bold text-stone-800 dark:text-stone-100 group-hover:text-[#C5A059] transition-colors line-clamp-1">{proj.title}</h4>
+                                                        <Code2 size={16} className="text-stone-400 shrink-0" />
                                                     </div>
-                                                    <p className="text-xs text-stone-500 dark:text-stone-400 print:text-stone-600 leading-relaxed mb-3 line-clamp-3">
+                                                    <p className="resume-project-desc text-xs text-stone-500 dark:text-stone-400 leading-relaxed mb-3 line-clamp-3">
                                                         {proj.description || 'No description available.'}
                                                     </p>
                                                 </Link>
                                             ) : (
-                                                <div className="block p-5 rounded-2xl bg-white dark:bg-stone-800/50 print:bg-white border border-stone-100 dark:border-stone-700 print:border-stone-300 hover:border-[#C5A059]/50 transition-colors shadow-sm print:shadow-none h-full relative overflow-hidden">
+                                                <div className="resume-project-card block p-5 rounded-2xl bg-white dark:bg-stone-800/50 border border-stone-100 dark:border-stone-700 hover:border-[#C5A059]/50 transition-colors shadow-sm h-full relative overflow-hidden">
                                                     {proj.imageUrl && (
-                                                        <div className="w-full h-32 mb-4 rounded-xl overflow-hidden relative">
+                                                        <div className="resume-project-img w-full h-32 mb-4 rounded-xl overflow-hidden relative print:hidden">
                                                             <Image src={getFullUrl(proj.imageUrl)} alt={proj.title} fill className="object-cover group-hover:scale-105 transition-transform" />
                                                         </div>
                                                     )}
                                                     <div className="flex items-center justify-between mb-3 mt-1">
-                                                        <h4 className="font-bold text-stone-800 dark:text-stone-100 print:text-stone-800 group-hover:text-[#C5A059] transition-colors line-clamp-1">{proj.title}</h4>
-                                                        <Code2 size={16} className="text-stone-400 print:text-stone-500 shrink-0" />
+                                                        <h4 className="resume-project-title font-bold text-stone-800 dark:text-stone-100 group-hover:text-[#C5A059] transition-colors line-clamp-1">{proj.title}</h4>
+                                                        <Code2 size={16} className="text-stone-400 shrink-0" />
                                                     </div>
-                                                    <p className="text-xs text-stone-500 dark:text-stone-400 print:text-stone-600 leading-relaxed mb-3 line-clamp-3">
+                                                    <p className="resume-project-desc text-xs text-stone-500 dark:text-stone-400 leading-relaxed mb-3 line-clamp-3">
                                                         {proj.description || 'No description available.'}
                                                     </p>
                                                 </div>

@@ -22,6 +22,9 @@ import {
     Folder,
     Briefcase,
     Tag,
+    MapPin,
+    Cpu,
+    AlertTriangle,
 } from 'lucide-react';
 
 // ====== Theme Context ======
@@ -46,6 +49,12 @@ const menuItems = [
     { label: 'Gallery', href: '/admin/gallery', icon: ImageIcon },
     { label: 'Resume', href: '/admin/resume', icon: Briefcase },
     { label: 'Users', href: '/admin/users', icon: Users },
+];
+
+const iotMenuItems = [
+    { label: 'Live Map', href: '/admin/map', icon: MapPin },
+    { label: 'Devices', href: '/admin/devices', icon: Cpu },
+    { label: 'Alerts', href: '/admin/alerts', icon: AlertTriangle },
 ];
 
 const bottomMenuItems = [
@@ -269,6 +278,59 @@ export default function AdminLayout({
                             {collapsed ? '•••' : 'Menu'}
                         </div>
                         {menuItems.map((item) => {
+                            const isActive =
+                                pathname === item.href || pathname.startsWith(item.href + '/');
+                            const Icon = item.icon;
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    title={item.label}
+                                    className={`
+                    group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+                    transition-all duration-200 relative overflow-hidden
+                    ${collapsed ? 'justify-center' : ''}
+                  `}
+                                    style={{
+                                        backgroundColor: isActive ? 'var(--admin-active-bg)' : 'transparent',
+                                        color: isActive ? 'var(--admin-accent)' : 'var(--admin-muted)',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (!isActive) {
+                                            e.currentTarget.style.backgroundColor = 'var(--admin-hover)';
+                                            e.currentTarget.style.color = 'var(--admin-fg)';
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (!isActive) {
+                                            e.currentTarget.style.backgroundColor = 'transparent';
+                                            e.currentTarget.style.color = 'var(--admin-muted)';
+                                        }
+                                    }}
+                                >
+                                    {isActive && (
+                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#C5A059] rounded-r-full animate-scale-in" />
+                                    )}
+                                    <Icon
+                                        size={20}
+                                        className="flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
+                                        style={{ color: isActive ? 'var(--admin-accent)' : undefined }}
+                                    />
+                                    {!collapsed && (
+                                        <span className="truncate animate-sidebar-text">{item.label}</span>
+                                    )}
+                                </Link>
+                            );
+                        })}
+
+                        {/* IoT Section */}
+                        <div
+                            className={`text-[10px] font-bold uppercase tracking-widest mt-5 mb-3 ${collapsed ? 'text-center' : 'px-3'}`}
+                            style={{ color: 'var(--admin-muted)' }}
+                        >
+                            {collapsed ? '📡' : 'IoT Tracker'}
+                        </div>
+                        {iotMenuItems.map((item) => {
                             const isActive =
                                 pathname === item.href || pathname.startsWith(item.href + '/');
                             const Icon = item.icon;

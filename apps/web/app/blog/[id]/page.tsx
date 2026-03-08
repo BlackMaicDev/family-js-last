@@ -248,7 +248,7 @@ export default function BlogDetail() {
                                 )}
                             </div>
                             <div className="text-left">
-                                <p className="text-sm font-bold text-stone-800">{post.author?.nickname}</p>
+                                <p className="text-sm font-bold text-stone-800 dark:text-stone-100">{post.author?.nickname}</p>
                                 <p className="text-[10px] font-bold tracking-widest uppercase text-stone-400">{t('general.author')}</p>
                             </div>
                         </div>
@@ -299,8 +299,9 @@ export default function BlogDetail() {
                     <div className="rich-text-content" dangerouslySetInnerHTML={{ __html: post.content }} />
 
                     <style jsx global>{`
+            /* ── Light Mode ── */
             .rich-text-content {
-              color: #57534e; /* text-stone-600 */
+              color: #57534e; /* stone-600 */
               line-height: 1.8;
               font-size: 1.125rem;
               font-weight: 300;
@@ -309,7 +310,7 @@ export default function BlogDetail() {
             .rich-text-content h2, 
             .rich-text-content h3, 
             .rich-text-content h4 {
-              color: #292524; /* text-stone-800 */
+              color: #292524; /* stone-800 */
               font-weight: 800;
               line-height: 1.3;
               margin-top: 2em;
@@ -334,8 +335,8 @@ export default function BlogDetail() {
             }
             .rich-text-content blockquote {
               border-left: 4px solid #C5A059;
-              background-color: #fafaf9; /* bg-stone-50 */
-              color: #44403c; /* text-stone-700 */
+              background-color: #fafaf9; /* stone-50 */
+              color: #44403c; /* stone-700 */
               font-style: italic;
               padding: 1rem 1.5rem;
               margin: 2em 0;
@@ -363,6 +364,29 @@ export default function BlogDetail() {
             .rich-text-content ul { list-style-type: disc; }
             .rich-text-content ol { list-style-type: decimal; }
             .rich-text-content li::marker { color: #C5A059; }
+
+            /* ── Dark Mode ── */
+            .dark .rich-text-content {
+              color: #d6d3d1; /* stone-300 */
+            }
+            .dark .rich-text-content h1,
+            .dark .rich-text-content h2,
+            .dark .rich-text-content h3,
+            .dark .rich-text-content h4 {
+              color: #f5f5f4; /* stone-100 */
+            }
+            .dark .rich-text-content blockquote {
+              background-color: #292524; /* stone-800 */
+              color: #d6d3d1; /* stone-300 */
+            }
+            .dark .rich-text-content img {
+              border-color: #44403c; /* stone-700 */
+              box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            }
+            .dark .rich-text-content strong,
+            .dark .rich-text-content b {
+              color: #e7e5e4; /* stone-200 */
+            }
           `}</style>
 
                 </div>

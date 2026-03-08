@@ -182,7 +182,7 @@ function ColorPickerDropdown({
     );
 }
 
-// --- Image Toolbar Popup ---
+// --- Image Toolbar (inline bar – never overlaps editor content) ---
 function ImageToolbar({
     img,
     onClose,
@@ -194,6 +194,7 @@ function ImageToolbar({
 }) {
     const [width, setWidth] = useState(img.style.width || `${img.naturalWidth}px`);
     const [height, setHeight] = useState(img.style.height || 'auto');
+    const [showCustomSize, setShowCustomSize] = useState(false);
 
     useEffect(() => {
         setWidth(img.style.width || (img.naturalWidth ? `${img.naturalWidth}px` : '100%'));
@@ -207,7 +208,6 @@ function ImageToolbar({
     };
 
     const applyAlign = (align: 'left' | 'center' | 'right') => {
-        // Remove existing alignment
         img.style.float = 'none';
         img.style.marginLeft = '';
         img.style.marginRight = '';
@@ -230,121 +230,81 @@ function ImageToolbar({
     };
 
     const applyPresetSize = (preset: string) => {
-        switch (preset) {
-            case 'small':
-                img.style.width = '25%';
-                setWidth('25%');
-                break;
-            case 'medium':
-                img.style.width = '50%';
-                setWidth('50%');
-                break;
-            case 'large':
-                img.style.width = '75%';
-                setWidth('75%');
-                break;
-            case 'full':
-                img.style.width = '100%';
-                setWidth('100%');
-                break;
-        }
+        const sizes: Record<string, string> = { small: '25%', medium: '50%', large: '75%', full: '100%' };
+        const val = sizes[preset] || '100%';
+        img.style.width = val;
+        setWidth(val);
         img.style.height = 'auto';
         setHeight('auto');
         onUpdate();
     };
 
     return (
-        <div
-            className="absolute z-50 animate-img-toolbar"
-            style={{
-                top: img.offsetTop - 4,
-                left: Math.max(0, img.offsetLeft),
-            }}
-        >
-            <div className="bg-[var(--rte-toolbar-bg)] border border-[var(--rte-border)] rounded-xl shadow-2xl shadow-black/40 p-3 min-w-[280px] backdrop-blur-md">
-                {/* Close */}
-                <div className="flex items-center justify-between mb-2.5">
-                    <span className="text-[11px] font-bold text-[var(--rte-muted)] uppercase tracking-wider flex items-center gap-1.5">
-                        <Maximize2 size={12} /> Image Settings
-                    </span>
-                    <button type="button" onClick={onClose} className="text-[var(--rte-muted)] hover:text-[var(--rte-fg)] transition-colors">
-                        <X size={14} />
+        <div className="border-b border-[var(--rte-border)] bg-[var(--rte-toolbar-bg)] px-3 py-2 animate-img-toolbar">
+            <div className="flex flex-wrap items-center gap-2">
+                {/* Label */}
+                <span className="text-[11px] font-bold text-[var(--rte-accent)] uppercase tracking-wider flex items-center gap-1.5 mr-1">
+                    <ImageIcon size={12} /> รูปภาพ
+                </span>
+
+                {/* Divider */}
+                <div className="w-px h-5 bg-[var(--rte-border)]" />
+
+                {/* Alignment */}
+                <div className="flex items-center gap-0.5">
+                    <button type="button" onClick={() => applyAlign('left')} title="ชิดซ้าย" className="p-1.5 rounded-lg text-[var(--rte-muted)] hover:text-[var(--rte-fg)] hover:bg-[var(--rte-hover)] transition-all">
+                        <AlignLeft size={14} />
+                    </button>
+                    <button type="button" onClick={() => applyAlign('center')} title="กึ่งกลาง" className="p-1.5 rounded-lg text-[var(--rte-muted)] hover:text-[var(--rte-fg)] hover:bg-[var(--rte-hover)] transition-all">
+                        <AlignCenter size={14} />
+                    </button>
+                    <button type="button" onClick={() => applyAlign('right')} title="ชิดขวา" className="p-1.5 rounded-lg text-[var(--rte-muted)] hover:text-[var(--rte-fg)] hover:bg-[var(--rte-hover)] transition-all">
+                        <AlignRight size={14} />
                     </button>
                 </div>
 
-                {/* Alignment */}
-                <div className="mb-3">
-                    <p className="text-[10px] font-semibold text-[var(--rte-muted)] uppercase tracking-wider mb-1.5">Alignment</p>
-                    <div className="flex gap-1.5">
-                        <button type="button" onClick={() => applyAlign('left')} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium bg-[var(--rte-hover)] text-[var(--rte-fg)] hover:bg-[var(--rte-accent)]/15 hover:text-[var(--rte-accent)] transition-all">
-                            <AlignLeft size={12} /> Left
-                        </button>
-                        <button type="button" onClick={() => applyAlign('center')} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium bg-[var(--rte-hover)] text-[var(--rte-fg)] hover:bg-[var(--rte-accent)]/15 hover:text-[var(--rte-accent)] transition-all">
-                            <AlignCenter size={12} /> Center
-                        </button>
-                        <button type="button" onClick={() => applyAlign('right')} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium bg-[var(--rte-hover)] text-[var(--rte-fg)] hover:bg-[var(--rte-accent)]/15 hover:text-[var(--rte-accent)] transition-all">
-                            <AlignRight size={12} /> Right
-                        </button>
-                    </div>
-                </div>
+                {/* Divider */}
+                <div className="w-px h-5 bg-[var(--rte-border)]" />
 
                 {/* Quick Sizes */}
-                <div className="mb-3">
-                    <p className="text-[10px] font-semibold text-[var(--rte-muted)] uppercase tracking-wider mb-1.5">Quick Size</p>
-                    <div className="flex gap-1.5">
-                        {[
-                            { label: '25%', key: 'small' },
-                            { label: '50%', key: 'medium' },
-                            { label: '75%', key: 'large' },
-                            { label: '100%', key: 'full' },
-                        ].map((p) => (
-                            <button
-                                key={p.key}
-                                type="button"
-                                onClick={() => applyPresetSize(p.key)}
-                                className="flex-1 px-2 py-1.5 rounded-lg text-[11px] font-medium bg-[var(--rte-hover)] text-[var(--rte-fg)] hover:bg-[var(--rte-accent)]/15 hover:text-[var(--rte-accent)] transition-all"
-                            >
-                                {p.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Custom Size */}
-                <div>
-                    <p className="text-[10px] font-semibold text-[var(--rte-muted)] uppercase tracking-wider mb-1.5">Custom Size</p>
-                    <div className="flex gap-2 items-end">
-                        <div className="flex-1">
-                            <label className="text-[10px] text-[var(--rte-muted)]">Width</label>
-                            <input
-                                type="text"
-                                value={width}
-                                onChange={(e) => setWidth(e.target.value)}
-                                placeholder="e.g. 300px, 50%"
-                                className="w-full mt-0.5 px-2.5 py-1.5 bg-[var(--rte-hover)] border border-[var(--rte-border)] rounded-lg text-[11px] text-[var(--rte-fg)] outline-none focus:border-[var(--rte-accent)]/30 transition-all"
-                            />
-                        </div>
-                        <div className="flex-1">
-                            <label className="text-[10px] text-[var(--rte-muted)]">Height</label>
-                            <input
-                                type="text"
-                                value={height}
-                                onChange={(e) => setHeight(e.target.value)}
-                                placeholder="auto"
-                                className="w-full mt-0.5 px-2.5 py-1.5 bg-[var(--rte-hover)] border border-[var(--rte-border)] rounded-lg text-[11px] text-[var(--rte-fg)] outline-none focus:border-[var(--rte-accent)]/30 transition-all"
-                            />
-                        </div>
+                <div className="flex items-center gap-1">
+                    {[
+                        { label: '25%', key: 'small' },
+                        { label: '50%', key: 'medium' },
+                        { label: '75%', key: 'large' },
+                        { label: '100%', key: 'full' },
+                    ].map((p) => (
                         <button
+                            key={p.key}
                             type="button"
-                            onClick={applySize}
-                            className="px-3 py-1.5 bg-[var(--rte-accent)] text-white text-[11px] font-semibold rounded-lg hover:opacity-90 transition-opacity"
+                            onClick={() => applyPresetSize(p.key)}
+                            className={`px-2 py-1 rounded-md text-[11px] font-medium transition-all ${width === p.label
+                                    ? 'bg-[var(--rte-accent)]/15 text-[var(--rte-accent)]'
+                                    : 'text-[var(--rte-muted)] hover:text-[var(--rte-fg)] hover:bg-[var(--rte-hover)]'
+                                }`}
                         >
-                            Apply
+                            {p.label}
                         </button>
-                    </div>
+                    ))}
                 </div>
 
-                {/* Delete image */}
+                {/* Divider */}
+                <div className="w-px h-5 bg-[var(--rte-border)]" />
+
+                {/* Custom size toggle */}
+                <button
+                    type="button"
+                    onClick={() => setShowCustomSize(!showCustomSize)}
+                    title="กำหนดขนาดเอง"
+                    className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-all ${showCustomSize
+                            ? 'bg-[var(--rte-accent)]/15 text-[var(--rte-accent)]'
+                            : 'text-[var(--rte-muted)] hover:text-[var(--rte-fg)] hover:bg-[var(--rte-hover)]'
+                        }`}
+                >
+                    <Maximize2 size={12} /> กำหนดเอง
+                </button>
+
+                {/* Delete */}
                 <button
                     type="button"
                     onClick={() => {
@@ -352,11 +312,41 @@ function ImageToolbar({
                         onClose();
                         onUpdate();
                     }}
-                    className="mt-3 w-full py-1.5 text-[11px] font-semibold text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                    title="ลบรูปภาพ"
+                    className="p-1.5 rounded-lg text-[var(--rte-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all ml-auto"
                 >
-                    Remove Image
+                    <X size={14} />
                 </button>
             </div>
+
+            {/* Custom size row (expandable) */}
+            {showCustomSize && (
+                <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[var(--rte-border)]">
+                    <span className="text-[10px] font-semibold text-[var(--rte-muted)] uppercase tracking-wider whitespace-nowrap">ขนาด:</span>
+                    <input
+                        type="text"
+                        value={width}
+                        onChange={(e) => setWidth(e.target.value)}
+                        placeholder="Width (เช่น 300px, 50%)"
+                        className="w-28 px-2 py-1 bg-[var(--rte-hover)] border border-[var(--rte-border)] rounded-md text-[11px] text-[var(--rte-fg)] outline-none focus:border-[var(--rte-accent)]/30 transition-all"
+                    />
+                    <span className="text-[var(--rte-muted)] text-[10px]">×</span>
+                    <input
+                        type="text"
+                        value={height}
+                        onChange={(e) => setHeight(e.target.value)}
+                        placeholder="Height (auto)"
+                        className="w-28 px-2 py-1 bg-[var(--rte-hover)] border border-[var(--rte-border)] rounded-md text-[11px] text-[var(--rte-fg)] outline-none focus:border-[var(--rte-accent)]/30 transition-all"
+                    />
+                    <button
+                        type="button"
+                        onClick={applySize}
+                        className="px-3 py-1 bg-[var(--rte-accent)] text-white text-[11px] font-semibold rounded-md hover:opacity-90 transition-opacity"
+                    >
+                        ใช้
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
@@ -371,6 +361,7 @@ export default function RichTextEditor({
     const [isFocused, setIsFocused] = useState(false);
     const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set());
     const [selectedImage, setSelectedImage] = useState<HTMLImageElement | null>(null);
+    const selectedImageRef = useRef<HTMLImageElement | null>(null);
     const [showColorPicker, setShowColorPicker] = useState(false);
     const [currentTextColor, setCurrentTextColor] = useState('');
 
@@ -380,6 +371,11 @@ export default function RichTextEditor({
             editorRef.current.innerHTML = value;
         }
     }, [value]);
+
+    // Keep ref in sync with state
+    useEffect(() => {
+        selectedImageRef.current = selectedImage;
+    }, [selectedImage]);
 
     // Click handler for images inside editor
     useEffect(() => {
@@ -391,17 +387,19 @@ export default function RichTextEditor({
             if (target.tagName === 'IMG') {
                 e.preventDefault();
                 e.stopPropagation();
-                setSelectedImage(target as HTMLImageElement);
-                // Add visual selection
+                const clickedImg = target as HTMLImageElement;
+                // Clear outline from all images first
                 editor.querySelectorAll('img').forEach((img) => {
                     img.style.outline = 'none';
                     img.style.outlineOffset = '0';
                 });
-                (target as HTMLImageElement).style.outline = '2px solid var(--rte-accent)';
-                (target as HTMLImageElement).style.outlineOffset = '3px';
+                // Add visual selection to clicked image
+                clickedImg.style.outline = '2px solid var(--rte-accent)';
+                clickedImg.style.outlineOffset = '3px';
+                setSelectedImage(clickedImg);
             } else {
-                // Deselect
-                if (selectedImage) {
+                // Deselect - use ref to avoid stale closure
+                if (selectedImageRef.current) {
                     editor.querySelectorAll('img').forEach((img) => {
                         img.style.outline = 'none';
                     });
@@ -412,7 +410,7 @@ export default function RichTextEditor({
 
         editor.addEventListener('click', handleClick);
         return () => editor.removeEventListener('click', handleClick);
-    }, [selectedImage]);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Track active formats
     const updateActiveFormats = useCallback(() => {
@@ -635,21 +633,22 @@ export default function RichTextEditor({
             {/* Hidden file input */}
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
 
+            {/* Image settings toolbar (inline, never overlaps content) */}
+            {selectedImage && (
+                <ImageToolbar
+                    img={selectedImage}
+                    onClose={() => {
+                        if (selectedImage) {
+                            selectedImage.style.outline = 'none';
+                        }
+                        setSelectedImage(null);
+                    }}
+                    onUpdate={handleInput}
+                />
+            )}
+
             {/* Editable Area */}
             <div className="relative">
-                {/* Image toolbar popup */}
-                {selectedImage && (
-                    <ImageToolbar
-                        img={selectedImage}
-                        onClose={() => {
-                            if (selectedImage) {
-                                selectedImage.style.outline = 'none';
-                            }
-                            setSelectedImage(null);
-                        }}
-                        onUpdate={handleInput}
-                    />
-                )}
 
                 <div
                     ref={editorRef}

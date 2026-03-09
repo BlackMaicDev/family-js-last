@@ -27,20 +27,50 @@
   --animate-float: float 6s ease-in-out infinite;
   --animate-pulse-slow: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-spin-slow: spin 10s linear infinite;
-  
+
   --keyframes-fade-in-up: {
-    "0%": { opacity: 0, transform: "translateY(30px)" },
-    "100%": { opacity: 1, transform: "translateY(0)" }
-  };
+    "0%": {
+      opacity: 0, transform: "translateY(30px)"
+    }
+
+    ,
+    "100%": {
+      opacity: 1, transform: "translateY(0)"
+    }
+  }
+
+  ;
+
   --keyframes-float: {
-    "0%": { transform: "translateY(0px)" },
-    "50%": { transform: "translateY(-15px)" },
-    "100%": { transform: "translateY(0px)" }
-  };
+    "0%": {
+      transform: "translateY(0px)"
+    }
+
+    ,
+    "50%": {
+      transform: "translateY(-15px)"
+    }
+
+    ,
+    "100%": {
+      transform: "translateY(0px)"
+    }
+  }
+
+  ;
+
   --keyframes-pulse-slow: {
-    "0%, 100%": { opacity: 1 },
-    "50%": { opacity: .7 }
-  };
+    "0%, 100%": {
+      opacity: 1
+    }
+
+    ,
+    "50%": {
+      opacity: .7
+    }
+  }
+
+  ;
 }
 
 :root {
@@ -51,7 +81,8 @@
   --border: #f2ebe1;
 }
 
-:root.dark, .dark {
+:root.dark,
+.dark {
   --background: #1c1917;
   --foreground: #f5f5f4;
   --card: #292524;
@@ -71,13 +102,16 @@ body {
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--background);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--color-brand-300);
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-brand-400);
 }
@@ -97,6 +131,7 @@ body {
 .hover-lift {
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+
 .hover-lift:hover {
   transform: translateY(-5px);
 }
@@ -120,7 +155,8 @@ body {
     transition: none !important;
   }
 
-  html, body {
+  html,
+  body {
     background: white !important;
     color: #1c1917 !important;
     font-size: 11px !important;
@@ -130,7 +166,7 @@ body {
   }
 
   /* Hide non-print elements */
-  .print\\:hidden,
+  .print\:hidden,
   nav,
   footer,
   .fixed,
@@ -201,6 +237,7 @@ body {
     line-height: 1.1 !important;
     margin-bottom: 2px !important;
   }
+
   .resume-title {
     font-size: 10px !important;
     color: #C5A059 !important;
@@ -226,12 +263,14 @@ body {
     gap: 8px !important;
     margin-bottom: 4px !important;
   }
+
   .resume-contact-icon {
     width: 20px !important;
     height: 20px !important;
     border: none !important;
     background: transparent !important;
   }
+
   .resume-contact-text {
     font-size: 10px !important;
     color: #44403c !important;
@@ -244,6 +283,7 @@ body {
     padding-left: 12px !important;
     gap: 10px !important;
   }
+
   .resume-timeline-dot {
     width: 8px !important;
     height: 8px !important;
@@ -268,19 +308,23 @@ body {
     margin-bottom: 12px !important;
     page-break-inside: avoid !important;
   }
+
   .resume-exp-title {
     font-size: 13px !important;
     color: #1c1917 !important;
   }
+
   .resume-exp-date {
     font-size: 9px !important;
     padding: 1px 8px !important;
   }
+
   .resume-exp-company {
     font-size: 10px !important;
     color: #78716c !important;
     margin-bottom: 6px !important;
   }
+
   .resume-exp-desc {
     font-size: 10px !important;
     color: #44403c !important;
@@ -295,13 +339,16 @@ body {
     background: white !important;
     page-break-inside: avoid !important;
   }
+
   .resume-project-img {
     display: none !important;
   }
+
   .resume-project-title {
     font-size: 11px !important;
     color: #1c1917 !important;
   }
+
   .resume-project-desc {
     font-size: 9px !important;
     color: #57534e !important;

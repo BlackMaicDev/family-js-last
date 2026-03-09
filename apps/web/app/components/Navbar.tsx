@@ -38,19 +38,73 @@ export function Navbar() {
     setIsMobilePrivateOpen(false);
   }, [pathname]);
 
-  // --- CASE 1: หน้า ABOUT (โชว์แค่ปุ่ม Back) ---
+  // --- State สำหรับ hamburger menu ในหน้าย่อย ---
+  const [isSubPageMenuOpen, setIsSubPageMenuOpen] = useState(false);
+  const [isSubPagePrivateOpen, setIsSubPagePrivateOpen] = useState(false);
+
+  // ปิดเมนูย่อยเมื่อเปลี่ยนหน้า
+  useEffect(() => {
+    setIsSubPageMenuOpen(false);
+    setIsSubPagePrivateOpen(false);
+  }, [pathname]);
+
+  // --- CASE 1: หน้า ABOUT (โชว์ปุ่ม Back + Hamburger Menu บน Mobile) ---
   // (ผมเอา /memories ออกจากตรงนี้ เพื่อให้ Gallery มีเมนูเต็มๆ ครับ)
   if (pathname === '/about' || pathname === '/resume' || pathname === '/memories' || pathname === '/documents' || pathname === '/money' || pathname === '/blog') {
     return (
-      <nav className="fixed top-0 w-full z-50 h-20 flex items-center mix-blend-difference text-white pointer-events-none">
-        <div className="max-w-7xl mx-auto w-full px-6 flex justify-between items-center pointer-events-auto">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-70 transition-opacity group">
-            <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-bold tracking-widest uppercase">{t('nav.back')}</span>
-          </Link>
-          {/* เปลี่ยนภาษาในหน้า About ได้ */}
-          <div className="pointer-events-auto">
-            <LanguageToggle />
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${isSubPageMenuOpen ? 'bg-white/95 dark:bg-[#1c1917]/95 backdrop-blur-md shadow-lg' : 'mix-blend-difference'}`}>
+        <div className="max-w-7xl mx-auto w-full px-6">
+          {/* Top Row */}
+          <div className={`flex justify-between items-center h-20 ${isSubPageMenuOpen ? 'text-stone-800 dark:text-stone-100' : 'text-white'}`}>
+            <Link href="/" className="flex items-center gap-2 hover:opacity-70 transition-opacity group pointer-events-auto">
+              <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
+              <span className="text-sm font-bold tracking-widest uppercase">{t('nav.back')}</span>
+            </Link>
+
+            <div className="flex items-center gap-3 pointer-events-auto">
+              <LanguageToggle />
+              {/* Hamburger button - mobile only */}
+              <button
+                onClick={() => setIsSubPageMenuOpen(!isSubPageMenuOpen)}
+                className="md:hidden p-2 hover:opacity-70 transition-opacity"
+              >
+                {isSubPageMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Dropdown Menu */}
+          <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${isSubPageMenuOpen ? 'max-h-[500px] opacity-100 pb-6' : 'max-h-0 opacity-0'}`}>
+            <div className="flex flex-col items-center gap-4 pt-4 border-t border-stone-200 dark:border-stone-700">
+              <MobileNavLink href="/" current={pathname}>{t('nav.home')}</MobileNavLink>
+              <MobileNavLink href="/about" current={pathname}>{t('nav.about')}</MobileNavLink>
+              <MobileNavLink href="/blog" current={pathname}>Blog</MobileNavLink>
+
+              {/* Private Zone */}
+              <div className="w-full flex flex-col items-center gap-2">
+                <button
+                  onClick={() => setIsSubPagePrivateOpen(!isSubPagePrivateOpen)}
+                  className={`flex items-center gap-1 text-base font-medium outline-none transition-colors ${(pathname === '/memories' || pathname === '/documents' || pathname === '/resume') ? 'text-[#C5A059]' : 'text-stone-600 dark:text-stone-300 hover:text-[#C5A059] dark:hover:text-[#C5A059]'}`}
+                >
+                  {t('nav.privateZone')} <ChevronDown size={16} className={`${isSubPagePrivateOpen ? 'rotate-180' : ''} transition-transform duration-300`} />
+                </button>
+
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out w-[85%] max-w-sm ${isSubPagePrivateOpen ? 'max-h-[200px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className="flex flex-col items-center gap-3 py-3 mt-1 bg-stone-50 dark:bg-stone-900/50 border border-stone-100 dark:border-stone-800/80 rounded-2xl">
+                    <MobileNavLink href="/memories" current={pathname}>{t('nav.gallery')}</MobileNavLink>
+                    <MobileNavLink href="/documents" current={pathname}>{t('nav.vault')}</MobileNavLink>
+                    <MobileNavLink href="/resume" current={pathname}>{t('nav.resume')}</MobileNavLink>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center gap-4 w-full mt-2">
+                <ThemeToggle />
+                <Link href="/login" className="flex-1 max-w-[200px] py-2.5 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 text-sm font-bold rounded-full hover:bg-[#C5A059] dark:hover:bg-[#C5A059] text-center transition-all">
+                  {t('nav.login')}
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </nav>
@@ -188,16 +242,17 @@ export function Navbar() {
                 <div className="w-[85%] max-w-sm flex flex-col items-center gap-3 py-3 mt-1 bg-stone-50 dark:bg-stone-900/50 border border-stone-100 dark:border-stone-800/80 rounded-2xl animate-in fade-in duration-200">
                   <MobileNavLink href="/memories" current={pathname}>{t('nav.gallery')}</MobileNavLink>
                   <MobileNavLink href="/documents" current={pathname}>{t('nav.vault')}</MobileNavLink>
+                  <MobileNavLink href="/resume" current={pathname}>{t('nav.resume')}</MobileNavLink>
                 </div>
               )}
             </div>
 
             {/* 👇 เพิ่มเมนู Wallet Mobile */}
-            <MobileNavLink href="/money" current={pathname}>
+            {/* <MobileNavLink href="/money" current={pathname}>
               <span className="flex items-center gap-2">
                 <Wallet size={18} /> Wallet (Private)
               </span>
-            </MobileNavLink>
+            </MobileNavLink> */}
 
             <div className="flex items-center justify-center gap-4 w-full mt-2">
               <LanguageToggle />

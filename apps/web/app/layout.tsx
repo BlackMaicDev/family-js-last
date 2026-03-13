@@ -23,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="antialiased bg-background text-foreground transition-colors duration-500">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
           <LanguageProvider>
             {/* Navbar ตัวเดียว จัดการให้ทุกหน้า */}
             <Navbar />

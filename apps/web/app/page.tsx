@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { BookOpen, Dumbbell, Star, ChevronRight, Terminal, Clock, Loader2, LayoutGrid, Sparkles } from 'lucide-react';
+import Logo3D from '@/app/components/Logo3D';
 import axios from 'axios';
 import { getFullUrl } from './lib/utils';
 import { useLanguage } from '@/app/contexts/LanguageContext';
@@ -83,36 +84,9 @@ const HomeContent = () => {
           </div>
         </div>
 
-        {/* 3D Animated Logo Scene (Replacing Spline) */}
-        <div className="w-full relative h-[400px] sm:h-[500px] w-full max-w-7xl mx-auto flex items-center justify-center animate-in fade-in zoom-in-95 duration-1000 z-10 my-4">
-          <div className="relative w-64 h-64 sm:w-[350px] sm:h-[350px] rounded-full flex items-center justify-center group perspective-1000">
-            {/* Outer rings spinning */}
-            <div className="absolute inset-0 border-[3px] border-[#C5A059]/30 border-dashed rounded-full animate-[spin_15s_linear_infinite] group-hover:border-[#C5A059]/60 transition-colors duration-500"></div>
-            <div className="absolute inset-[-25px] border-2 border-stone-800/10 rounded-full animate-[spin_25s_linear_infinite_reverse]"></div>
-            <div className="absolute inset-[-50px] border-2 border-[#C5A059]/10 rounded-full animate-[spin_35s_linear_infinite]"></div>
-            <div className="absolute inset-[-75px] border-2 border-stone-800/5 border-dotted rounded-full animate-[spin_40s_linear_infinite_reverse]"></div>
-
-            {/* Floating & Tilting Logo */}
-            <div className="relative w-[85%] h-[85%] rounded-full overflow-hidden bg-stone-900 border-[6px] border-stone-800 dark:border-stone-900 shadow-[0_0_80px_rgba(197,160,89,0.25)] transition-all duration-700 transform-gpu hover:scale-[1.05] hover:rotate-[10deg] animate-float hover:shadow-[0_0_120px_rgba(197,160,89,0.4)] cursor-pointer">
-              <Image
-                src="/images/logo1.png"
-                alt="Family JS Logo"
-                fill
-                className="object-cover opacity-90 transition-opacity duration-300 hover:opacity-100 scale-110"
-              />
-              {/* Glass overlay reflection */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/20 dark:from-white/10 via-transparent to-black/50 mix-blend-overlay pointer-events-none"></div>
-              <div className="absolute top-0 right-0 w-full h-1/2 bg-gradient-to-b from-white/10 dark:from-white/5 to-transparent -skew-y-12 pointer-events-none"></div>
-            </div>
-          </div>
-
-          {/* Sparkles around the 3D object */}
-          <div className="absolute top-10 right-[25%] text-[#C5A059] animate-bounce duration-1000 delay-500 opacity-80 pointer-events-none">
-            <Sparkles size={32} fill="currentColor" />
-          </div>
-          <div className="absolute bottom-10 left-[25%] text-[#8A6E3E] animate-pulse duration-700 opacity-60 pointer-events-none">
-            <Star size={24} fill="currentColor" />
-          </div>
+        {/* 3D Animated Logo Scene */}
+        <div className="w-full max-w-7xl mx-auto animate-in fade-in zoom-in-95 duration-1000 z-10 my-4">
+          <Logo3D />
         </div>
 
         <div className="max-w-5xl mx-auto text-center relative z-20 mt-4 px-4">

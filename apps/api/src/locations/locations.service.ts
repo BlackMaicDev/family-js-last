@@ -2,10 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLocationDto } from './dto/create-location.dto';
 import { AlertType } from '@prisma/client';
+import { LocationsGateway } from './locations.gateway';
 
 @Injectable()
 export class LocationsService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private readonly locationsGateway: LocationsGateway,
+    ) { }
 
     /**
      * Sync GPS location from IoT device.
@@ -56,6 +60,17 @@ export class LocationsService {
 
         // 3. Check Geofences
         await this.checkGeofences(deviceId, createLocationDto.lat, createLocationDto.lng);
+
+        // 4. Find device owner and emit Socket.IO event for real-time update
+        const device = await this.prisma.device.findUnique({
+            where: { id: deviceId },
+            select: { userId: true },
+        });
+
+        if (device) {
+            const latestData = await this.getLatestForUser(device.userId);
+            this.locationsGateway.emitLocationUpdate(latestData);
+        }
 
         return location;
     }

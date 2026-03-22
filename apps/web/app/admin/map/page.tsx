@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import dynamic from 'next/dynamic';
+import { io, Socket } from 'socket.io-client';
 import {
     MapPin,
     Loader2,
@@ -23,10 +24,7 @@ import {
     Gauge,
     Eye,
     EyeOff,
-    Crosshair,
-    Layers,
-    ZoomIn,
-    ZoomOut,
+    Radio,
 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────
@@ -135,7 +133,7 @@ function alertTypeLabel(type: string) {
     }
 }
 
-const REFRESH_INTERVAL = 10; // seconds
+
 
 export default function MapPage() {
     const [locations, setLocations] = useState<LocationData[]>([]);
@@ -143,16 +141,14 @@ export default function MapPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedDevice, setSelectedDevice] = useState<string | null>(null);
-    const [autoRefresh, setAutoRefresh] = useState(true);
     const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
     const [mounted, setMounted] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [countdown, setCountdown] = useState(REFRESH_INTERVAL);
+    const [socketConnected, setSocketConnected] = useState(false);
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const socketRef = useRef<Socket | null>(null);
 
     useEffect(() => { setMounted(true); }, []);
 
@@ -173,7 +169,7 @@ export default function MapPage() {
             }
 
             setLastRefresh(new Date());
-            setCountdown(REFRESH_INTERVAL);
+
             setError(null);
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด');
@@ -185,22 +181,33 @@ export default function MapPage() {
 
     useEffect(() => {
         fetchData();
-    }, []);
 
-    // Auto refresh every N seconds
-    useEffect(() => {
-        if (autoRefresh) {
-            intervalRef.current = setInterval(() => fetchData(), REFRESH_INTERVAL * 1000);
-            // Countdown timer (update every second)
-            countdownRef.current = setInterval(() => {
-                setCountdown(prev => (prev <= 1 ? REFRESH_INTERVAL : prev - 1));
-            }, 1000);
-        }
+        // Connect to Socket.IO
+        const socket = io(`${apiUrl}/locations`, {
+            withCredentials: true,
+            transports: ['websocket', 'polling'],
+        });
+
+        socket.on('connect', () => {
+            setSocketConnected(true);
+        });
+
+        socket.on('disconnect', () => {
+            setSocketConnected(false);
+        });
+
+        socket.on('location:updated', (data: ApiLocationData[]) => {
+            setLocations(transformApiData(data));
+            setLastRefresh(new Date());
+        });
+
+        socketRef.current = socket;
+
         return () => {
-            if (intervalRef.current) clearInterval(intervalRef.current);
-            if (countdownRef.current) clearInterval(countdownRef.current);
+            socket.disconnect();
+            socketRef.current = null;
         };
-    }, [autoRefresh]);
+    }, []);
 
     const selectedLocation = useMemo(() =>
         locations.find(l => l?.device?.id === selectedDevice),
@@ -221,15 +228,18 @@ export default function MapPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    {/* Auto refresh toggle */}
-                    <button
-                        onClick={() => setAutoRefresh(!autoRefresh)}
-                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${autoRefresh ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'border'}`}
-                        style={!autoRefresh ? { color: 'var(--admin-muted)', borderColor: 'var(--admin-border)', backgroundColor: 'var(--admin-card)' } : undefined}
+                    {/* Socket.IO status */}
+                    <div
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                            socketConnected
+                                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
+                                : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                        }`}
                     >
-                        <div className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? 'bg-emerald-400 animate-pulse' : 'bg-gray-400'}`} />
-                        Auto {autoRefresh ? 'ON' : 'OFF'}
-                    </button>
+                        <div className={`w-1.5 h-1.5 rounded-full ${socketConnected ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
+                        <Radio size={12} />
+                        {socketConnected ? 'Live' : 'Disconnected'}
+                    </div>
 
                     {/* Manual refresh */}
                     <button
@@ -239,7 +249,7 @@ export default function MapPage() {
                         style={{ color: 'var(--admin-fg-secondary)', borderColor: 'var(--admin-border)', backgroundColor: 'var(--admin-card)' }}
                     >
                         <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
-                        {refreshing ? 'กำลังโหลด...' : autoRefresh ? `Refresh (${countdown}s)` : 'Refresh'}
+                        {refreshing ? 'กำลังโหลด...' : 'Refresh'}
                     </button>
 
                     {/* Sidebar toggle */}

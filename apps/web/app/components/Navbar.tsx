@@ -16,6 +16,25 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobilePrivateOpen, setIsMobilePrivateOpen] = useState(false);
   const { t } = useLanguage();
+  const [user, setUser] = useState<{ username: string; role: string } | null>(null);
+
+  // ตรวจสอบสถานะล็อกอิน
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const res = await fetch(`${apiUrl}/auth/me`, { credentials: 'include' });
+        if (res.ok) {
+          setUser(await res.json());
+        } else {
+          setUser(null);
+        }
+      } catch (err) {
+        setUser(null);
+      }
+    };
+    checkAuth();
+  }, [pathname]);
 
   // --- 1. FIXED SCROLL LOGIC (แก้ปัญหาหน้ากระพริบ) ---
   useEffect(() => {
@@ -50,7 +69,16 @@ export function Navbar() {
 
   // --- CASE 1: หน้า ABOUT (โชว์ปุ่ม Back + Hamburger Menu บน Mobile) ---
   // (ผมเอา /memories ออกจากตรงนี้ เพื่อให้ Gallery มีเมนูเต็มๆ ครับ)
-  if (pathname === '/about' || pathname === '/resume' || pathname === '/memories' || pathname === '/documents' || pathname === '/money' || pathname === '/blog') {
+  if (
+    pathname === '/about' ||
+    pathname === '/resume' ||
+    pathname === '/memories' ||
+    pathname === '/documents' ||
+    pathname === '/money' ||
+    pathname === '/blog' ||
+    pathname.startsWith('/e-learning') ||
+    pathname.startsWith('/exams')
+  ) {
     return (
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${isSubPageMenuOpen ? 'bg-white/95 dark:bg-[#1c1917]/95 backdrop-blur-md shadow-lg' : 'mix-blend-difference'}`}>
         <div className="max-w-7xl mx-auto w-full px-6">
@@ -79,6 +107,7 @@ export function Navbar() {
               <MobileNavLink href="/" current={pathname}>{t('nav.home')}</MobileNavLink>
               <MobileNavLink href="/about" current={pathname}>{t('nav.about')}</MobileNavLink>
               <MobileNavLink href="/blog" current={pathname}>Blog</MobileNavLink>
+              <MobileNavLink href="/e-learning" current={pathname}>{t('nav.elearning') || 'E-Learning'}</MobileNavLink>
 
               {/* Private Zone */}
               <div className="w-full flex flex-col items-center gap-2">
@@ -100,9 +129,18 @@ export function Navbar() {
 
               <div className="flex items-center justify-center gap-4 w-full mt-2">
                 <ThemeToggle />
-                <Link href="/login" className="flex-1 max-w-[200px] py-2.5 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 text-sm font-bold rounded-full hover:bg-[#C5A059] dark:hover:bg-[#C5A059] text-center transition-all">
-                  {t('nav.login')}
-                </Link>
+                {user ? (
+                  <Link href={user.role === 'ADMIN' ? '/admin/dashboard' : '/e-learning'} className="flex items-center justify-center gap-2 flex-1 max-w-[200px] py-2 bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 text-sm font-bold rounded-full hover:text-[#C5A059] transition-all border border-stone-200 dark:border-stone-700">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#C5A059] to-[#714e38] flex items-center justify-center text-[10px] text-white">
+                      {user.username.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="truncate max-w-[120px]">{user.username}</span>
+                  </Link>
+                ) : (
+                  <Link href="/login" className="flex-1 max-w-[200px] py-2.5 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 text-sm font-bold rounded-full hover:bg-[#C5A059] dark:hover:bg-[#C5A059] text-center transition-all">
+                    {t('nav.login')}
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -190,6 +228,7 @@ export function Navbar() {
           <NavLink href="/" current={pathname}>{t('nav.home')}</NavLink>
           <NavLink href="/about" current={pathname}>{t('nav.about')}</NavLink>
           <NavLink href="/blog" current={pathname}>Blog</NavLink>
+          <NavLink href="/e-learning" current={pathname}>{t('nav.elearning') || 'E-Learning'}</NavLink>
           {/* <NavLink href="/resume" current={pathname}>{t('nav.resume')}</NavLink> */}
 
           {/* Private Zone Dropdown (Desktop) */}
@@ -217,9 +256,20 @@ export function Navbar() {
           <LanguageToggle />
           <ThemeToggle />
           <SearchInput />
-          <Link href="/login" className="px-5 py-2 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 text-xs font-bold rounded-full hover:bg-[#C5A059] dark:hover:bg-[#C5A059] transition-all hover:scale-105 hover:shadow-md">
-            {t('nav.login')}
-          </Link>
+          {user ? (
+            <Link href={user.role === 'ADMIN' ? '/admin/dashboard' : '/e-learning'} className="flex items-center gap-2 pl-2 pr-4 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-full hover:border-[#C5A059] transition-all group">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#C5A059] to-[#714e38] flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                {user.username.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-xs font-bold text-stone-700 dark:text-stone-300 group-hover:text-[#C5A059] max-w-[100px] truncate">
+                {user.username}
+              </span>
+            </Link>
+          ) : (
+            <Link href="/login" className="px-5 py-2 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 text-xs font-bold rounded-full hover:bg-[#C5A059] dark:hover:bg-[#C5A059] transition-all hover:scale-105 hover:shadow-md">
+              {t('nav.login')}
+            </Link>
+          )}
         </div>
 
         {/* === MOBILE MENU DROPDOWN === */}
@@ -228,6 +278,7 @@ export function Navbar() {
             <MobileNavLink href="/" current={pathname}>{t('nav.home')}</MobileNavLink>
             <MobileNavLink href="/about" current={pathname}>{t('nav.about')}</MobileNavLink>
             <MobileNavLink href="/blog" current={pathname}>Blog</MobileNavLink>
+            <MobileNavLink href="/e-learning" current={pathname}>{t('nav.elearning') || 'E-Learning'}</MobileNavLink>
             {/* <MobileNavLink href="/resume" current={pathname}>{t('nav.resume')}</MobileNavLink> */}
 
             <div className="w-full flex flex-col items-center gap-2">
@@ -257,9 +308,18 @@ export function Navbar() {
             <div className="flex items-center justify-center gap-4 w-full mt-2">
               <LanguageToggle />
               <ThemeToggle />
-              <Link href="/login" className="flex-1 py-2.5 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 text-sm font-bold rounded-full hover:bg-[#C5A059] dark:hover:bg-[#C5A059] text-center">
-                {t('nav.login')}
-              </Link>
+              {user ? (
+                <Link href={user.role === 'ADMIN' ? '/admin/dashboard' : '/e-learning'} className="flex items-center justify-center gap-2 flex-1 py-2.5 bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 text-sm font-bold rounded-full hover:text-[#C5A059] border border-stone-200 dark:border-stone-700">
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#C5A059] to-[#714e38] flex items-center justify-center text-[10px] text-white">
+                    {user.username.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="truncate">{user.username}</span>
+                </Link>
+              ) : (
+                <Link href="/login" className="flex-1 py-2.5 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 text-sm font-bold rounded-full hover:bg-[#C5A059] dark:hover:bg-[#C5A059] text-center">
+                  {t('nav.login')}
+                </Link>
+              )}
             </div>
           </div>
         )}

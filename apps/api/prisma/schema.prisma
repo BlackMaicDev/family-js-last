@@ -45,6 +45,10 @@ model User {
   albums    Album[]  // อัลบั้มที่สร้าง
   photos    Photo[]  // รูปภาพที่อัปโหลด
   devices   Device[] // อุปกรณ์ IoT
+  
+  // E-Learning
+  examAttempts ExamAttempt[]
+  examAnswers  ExamAttemptAnswer[]
 
   @@map("users")
 }
@@ -305,4 +309,148 @@ model Geofence {
   updatedAt   DateTime @updatedAt
 
   @@map("geofences")
+}
+
+// --- E-LEARNING & EXAMS ---
+
+model GradeLevel {
+  id          String    @id @default(uuid())
+  name        String    @unique // e.g., "ม.1", "ม.2", "ป.1", "ปริญญาตรี"
+  description String?   @db.Text
+  subjects    Subject[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("grade_levels")
+}
+
+model ExamType {
+  id          String    @id @default(uuid())
+  name        String    @unique // e.g., "Pre-test", "Post-test", "TGAT", "TPAT", "A-Level"
+  description String?   @db.Text
+  exams       Exam[]
+
+  @@map("exam_types")
+}
+
+model Subject {
+  id           String      @id @default(uuid())
+  name         String      // e.g., "คณิตศาสตร์ประยุกต์ 1"
+  code         String?     // e.g., "MATH101"
+  description  String?     @db.Text
+  
+  gradeLevelId String?
+  gradeLevel   GradeLevel? @relation(fields: [gradeLevelId], references: [id], onDelete: SetNull)
+  
+  lessons      Lesson[]
+  exams        Exam[]
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("subjects")
+}
+
+model Lesson {
+  id          String   @id @default(uuid())
+  title       String
+  content     String   @db.Text
+  videoUrl    String?
+  order       Int      @default(0) // สำหรับเรียงลำดับเนื้อหาในรายวิชา
+  
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("lessons")
+}
+
+model Exam {
+  id          String    @id @default(uuid())
+  title       String
+  description String?   @db.Text
+  timeLimit   Int?      // จับเวลา (นาที) Null = ไม่จำกัดเวลา
+  
+  subjectId   String
+  subject     Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  examTypeId  String?
+  examType    ExamType? @relation(fields: [examTypeId], references: [id], onDelete: SetNull)
+
+  questions   Question[]
+  attempts    ExamAttempt[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("exams")
+}
+
+model Question {
+  id          String         @id @default(uuid())
+  text        String         @db.Text
+  imageUrl    String?
+  explanation String?        @db.Text // คำอธิบายวิธีทำ
+  order       Int            @default(0) // ลำดับข้อ
+  
+  examId      String
+  exam        Exam           @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  options     AnswerOption[]
+  attemptAnswers ExamAttemptAnswer[]
+
+  @@map("questions")
+}
+
+model AnswerOption {
+  id          String   @id @default(uuid())
+  text        String
+  isCorrect   Boolean  @default(false)
+  
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("answer_options")
+}
+
+model ExamAttempt {
+  id          String   @id @default(uuid())
+  score       Float    @default(0)
+  totalScore  Float    @default(0)
+  startTime   DateTime @default(now())
+  endTime     DateTime?
+  status      String   @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED
+  
+  examId      String
+  exam        Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  answers     ExamAttemptAnswer[]
+
+  @@map("exam_attempts")
+}
+
+model ExamAttemptAnswer {
+  id              String       @id @default(uuid())
+  
+  attemptId       String
+  attempt         ExamAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  questionId      String
+  question        Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  selectedOptionId String?     // Null means no answer selected
+  
+  userId          String
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime     @default(now())
+
+  @@unique([attemptId, questionId])
+  @@map("exam_attempt_answers")
 }

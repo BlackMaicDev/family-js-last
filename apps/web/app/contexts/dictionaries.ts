@@ -10,6 +10,7 @@ export const dictionaries = {
         'nav.login': 'เข้าสู่ระบบ',
         'nav.back': 'กลับ',
         'nav.searchPlaceholder': 'ค้นหา...',
+        'nav.elearning': 'ห้องเรียน',
 
         // Home Page
         'home.masterYourElement': 'เชี่ยวชาญในธาตุของคุณ',
@@ -71,6 +72,7 @@ export const dictionaries = {
         'nav.login': 'Login',
         'nav.back': 'Back',
         'nav.searchPlaceholder': 'Search...',
+        'nav.elearning': 'E-Learning',
 
         // Home Page
         'home.masterYourElement': 'Master Your Element',

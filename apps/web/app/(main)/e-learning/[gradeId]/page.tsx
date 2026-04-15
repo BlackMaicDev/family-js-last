@@ -64,8 +64,8 @@ export default function GradeSubjectsPage() {
               </p>
               
               <div className="flex items-center gap-3">
-                <Link href={`/exams?subjectId=${sub.id}`} className="flex-1 text-center py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold shadow-md shadow-purple-500/20 transition-all flex items-center justify-center gap-2">
-                  <PlayCircle size={16} /> เริ่มเรียน
+                <Link href={`/e-learning/subjects/${sub.id}`} className="flex-1 text-center py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold shadow-md shadow-purple-500/20 transition-all flex items-center justify-center gap-2">
+                  <PlayCircle size={16} /> เข้าสู่บทวิชา
                 </Link>
               </div>
             </div>

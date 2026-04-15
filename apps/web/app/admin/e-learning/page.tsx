@@ -507,12 +507,20 @@ export default function AdminELearningPage() {
                         <span>บทเรียน: {sub._count?.lessons ?? '?'}</span>
                         <span>ข้อสอบ: {sub._count?.exams ?? '?'}</span>
                       </div>
-                      <Link
-                        href={`/admin/exams?subjectId=${sub.id}`}
-                        className="text-[11px] font-bold text-[#C5A059] hover:underline"
-                      >
-                        จัดการข้อสอบ →
-                      </Link>
+                      <div className="flex gap-3">
+                        <Link
+                          href={`/admin/e-learning/subjects/${sub.id}/lessons`}
+                          className="text-[11px] font-bold text-blue-400 hover:underline"
+                        >
+                          บทเรียน →
+                        </Link>
+                        <Link
+                          href={`/admin/exams?subjectId=${sub.id}`}
+                          className="text-[11px] font-bold text-[#C5A059] hover:underline"
+                        >
+                          ข้อสอบ →
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 ))

@@ -46,7 +46,11 @@ export class ELearningService {
   async getSubjects(gradeLevelId?: string) {
     return this.prisma.subject.findMany({
       where: gradeLevelId ? { gradeLevelId } : undefined,
-      include: { gradeLevel: true, _count: { select: { lessons: true, exams: true } } }
+      include: { 
+        gradeLevel: true, 
+        lessons: { select: { id: true, title: true } },
+        _count: { select: { lessons: true, exams: true } } 
+      }
     });
   }
 
@@ -77,7 +81,18 @@ export class ELearningService {
   }
 
   async getLessonById(id: string) {
-    return this.prisma.lesson.findUnique({ where: { id }, include: { subject: true } });
+    return this.prisma.lesson.findUnique({ 
+      where: { id }, 
+      include: { 
+        subject: { 
+          include: { 
+            lessons: {
+              select: { id: true, title: true, order: true }
+            } 
+          } 
+        } 
+      } 
+    });
   }
 
   async updateLesson(id: string, data: Prisma.LessonUncheckedUpdateInput) {
@@ -92,7 +107,12 @@ export class ELearningService {
   async getExams(filters: { subjectId?: string, examTypeId?: string }) {
     return this.prisma.exam.findMany({
       where: filters,
-      include: { subject: true, examType: true, _count: { select: { questions: true, attempts: true } } }
+      include: { 
+        subject: { include: { gradeLevel: true } }, 
+        examType: true, 
+        lesson: { include: { subject: { include: { gradeLevel: true } } } },
+        _count: { select: { questions: true, attempts: true } } 
+      }
     });
   }
 
@@ -100,8 +120,9 @@ export class ELearningService {
     const exam = await this.prisma.exam.findUnique({
       where: { id },
       include: { 
-        subject: true, 
+        subject: { include: { gradeLevel: true } }, 
         examType: true, 
+        lesson: { include: { subject: { include: { gradeLevel: true } } } },
         questions: { include: { options: true }, orderBy: { order: 'asc' } }
       }
     });

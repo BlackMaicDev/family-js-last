@@ -1,10 +1,15 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Trash2, Edit3, Loader2, Search, Filter, Clock, Tag, Save, X, AlertTriangle, ChevronLeft, Info } from 'lucide-react';
+import { Plus, Trash2, Edit3, Loader2, Search, Filter, Clock, Tag, Save, X, AlertTriangle, ChevronLeft, Info, PlayCircle } from 'lucide-react';
 import Link from 'next/link';
 
-interface Subject { id: string; name: string; }
+interface Subject { 
+  id: string; 
+  name: string; 
+  gradeLevel?: { name: string };
+  lessons?: { id: string; title: string }[];
+}
 interface ExamType { id: string; name: string; }
 
 interface Exam {
@@ -14,6 +19,7 @@ interface Exam {
   timeLimit: number | null;
   subject: Subject;
   examType: ExamType | null;
+  lesson?: { id: string; title: string } | null;
   _count?: { questions: number; attempts: number };
 }
 
@@ -103,7 +109,14 @@ export default function AdminExamsPage() {
 
   // ── Exam Modal
   const [examModal, setExamModal] = useState<'add' | 'edit' | null>(null);
-  const [examForm, setExamForm] = useState({ title: '', description: '', timeLimit: '', subjectId: '', examTypeId: '' });
+  const [examForm, setExamForm] = useState({ 
+    title: '', 
+    description: '', 
+    timeLimit: '', 
+    subjectId: '', 
+    examTypeId: '',
+    lessonId: '' 
+  });
   const [editingExam, setEditingExam] = useState<Exam | null>(null);
   const [examSaving, setExamSaving] = useState(false);
 
@@ -142,7 +155,7 @@ export default function AdminExamsPage() {
   };
 
   const openAddExam = () => {
-    setExamForm({ title: '', description: '', timeLimit: '', subjectId: subjects[0]?.id || '', examTypeId: '' });
+    setExamForm({ title: '', description: '', timeLimit: '', subjectId: subjects[0]?.id || '', examTypeId: '', lessonId: '' });
     setEditingExam(null);
     setExamModal('add');
   };
@@ -154,6 +167,7 @@ export default function AdminExamsPage() {
       timeLimit: exam.timeLimit?.toString() || '',
       subjectId: exam.subject.id,
       examTypeId: exam.examType?.id || '',
+      lessonId: exam.lesson?.id || '',
     });
     setEditingExam(exam);
     setExamModal('edit');
@@ -172,6 +186,7 @@ export default function AdminExamsPage() {
         description: examForm.description.trim() || undefined,
         subjectId: examForm.subjectId,
         examTypeId: examForm.examTypeId || undefined,
+        lessonId: examForm.lessonId || undefined,
         timeLimit: examForm.timeLimit ? parseInt(examForm.timeLimit) : null,
       };
       const res = await fetch(url, {
@@ -253,6 +268,14 @@ export default function AdminExamsPage() {
     color: 'var(--admin-fg)',
   };
 
+  const handleLessonChange = (val: string) => {
+    setExamForm(p => ({
+      ...p,
+      lessonId: val,
+      subjectId: val ? subjects.find(s => s.lessons?.some(l => l.id === val))?.id || p.subjectId : p.subjectId
+    }));
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-20">
 
@@ -271,11 +294,25 @@ export default function AdminExamsPage() {
         <div className="space-y-4">
           <Field label="ชื่อชุดข้อสอบ" value={examForm.title} onChange={v => setExamForm(p => ({ ...p, title: v }))} placeholder="เช่น Pre-test คณิตศาสตร์ ม.1" required />
 
+          <Field label="เชื่อมกับบทเรียน (ถ้ามี)">
+            <select value={examForm.lessonId} onChange={e => handleLessonChange(e.target.value)}
+              className="w-full text-sm px-3 py-2.5 rounded-xl outline-none" style={selectStyle}>
+              <option value="">-- ไม่ระบุ (เป็นข้อสอบแยกเฉพาะ) --</option>
+              {subjects.map(s => (
+                <optgroup key={s.id} label={`${s.gradeLevel?.name || 'General'} - ${s.name}`}>
+                  {(s.lessons || []).map(l => (
+                    <option key={l.id} value={l.id}>{l.title}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </Field>
+
           <Field label="วิชา" required>
             <select value={examForm.subjectId} onChange={e => setExamForm(p => ({ ...p, subjectId: e.target.value }))}
               className="w-full text-sm px-3 py-2.5 rounded-xl outline-none" style={selectStyle}>
               <option value="">-- เลือกวิชา --</option>
-              {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              {subjects.map(s => <option key={s.id} value={s.id}>[{s.gradeLevel?.name}] {s.name}</option>)}
             </select>
           </Field>
 
@@ -404,9 +441,16 @@ export default function AdminExamsPage() {
             <div key={exam.id} className="rounded-2xl p-5 border group hover:shadow-lg transition-all"
               style={{ backgroundColor: 'var(--admin-card)', borderColor: 'var(--admin-border)', animation: mounted ? `card-enter 0.5s ease ${i * 50}ms both` : 'none' }}>
               <div className="flex justify-between items-start mb-3">
-                <span className="text-xs px-2 py-1 rounded-md font-bold" style={{ backgroundColor: 'var(--admin-hover)', color: '#C5A059' }}>
-                  {exam.subject.name}
-                </span>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider opacity-50" style={{ color: 'var(--admin-muted)' }}>
+                    [{exam.subject.gradeLevel?.name || '?'}] {exam.subject.name}
+                  </span>
+                  {exam.lesson && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-1 w-fit" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                      <PlayCircle size={10} /> {exam.lesson.title}
+                    </span>
+                  )}
+                </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => openEditExam(exam)}

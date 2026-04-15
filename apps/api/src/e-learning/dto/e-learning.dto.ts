@@ -160,6 +160,11 @@ export class CreateExamDto {
   @IsOptional()
   @IsString()
   examTypeId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  lessonId?: string;
 }
 
 export class UpdateExamDto {
@@ -187,6 +192,11 @@ export class UpdateExamDto {
   @IsOptional()
   @IsString()
   examTypeId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  lessonId?: string;
 }
 
 export class OptionDto {

@@ -108,6 +108,11 @@ export class ELearningController {
     return this.eLearningService.deleteLesson(id);
   }
 
+  @Get('lessons/:id')
+  async getLessonById(@Param('id') id: string) {
+    return this.eLearningService.getLessonById(id);
+  }
+
   // --- Exams ---
   @Get('exams')
   async getExams(@Query('subjectId') subjectId?: string, @Query('examTypeId') examTypeId?: string) {

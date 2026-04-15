@@ -361,6 +361,7 @@ model Lesson {
   
   subjectId   String
   subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  exams       Exam[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -379,6 +380,9 @@ model Exam {
 
   examTypeId  String?
   examType    ExamType? @relation(fields: [examTypeId], references: [id], onDelete: SetNull)
+
+  lessonId    String?
+  lesson      Lesson?   @relation(fields: [lessonId], references: [id], onDelete: SetNull)
 
   questions   Question[]
   attempts    ExamAttempt[]

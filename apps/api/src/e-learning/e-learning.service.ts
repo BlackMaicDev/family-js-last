@@ -55,12 +55,28 @@ export class ELearningService {
   }
 
   async getSubjectById(id: string) {
-    const subject = await this.prisma.subject.findUnique({
-      where: { id },
-      include: { gradeLevel: true, lessons: { orderBy: { order: 'asc' } }, exams: { include: { examType: true, _count: { select: { questions: true } } } } }
-    });
-    if (!subject) throw new NotFoundException('Subject not found');
-    return subject;
+    if (!id) throw new NotFoundException('Subject ID is required');
+
+    try {
+      const subject = await this.prisma.subject.findFirst({
+        where: { id },
+        include: { 
+          gradeLevel: true, 
+          lessons: { orderBy: { order: 'asc' } }, 
+          exams: {
+            include: {
+              examType: true,
+              _count: { select: { questions: true } }
+            }
+          }
+        }
+      });
+      if (!subject) throw new NotFoundException('Subject not found');
+      return subject;
+    } catch (error) {
+      console.error('Prisma error in getSubjectById:', error);
+      throw error;
+    }
   }
 
   async createSubject(data: Prisma.SubjectUncheckedCreateInput) {

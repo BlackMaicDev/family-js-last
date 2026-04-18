@@ -81,8 +81,28 @@ model Category {
   name  String @unique
   slug  String @unique
   posts Post[]
+  books Book[]
 
   @@map("categories")
+}
+
+model Book {
+  id              String   @id @default(uuid())
+  title           String
+  authors         String[]
+  description     String?  @db.Text
+  thumbnail       String?
+  isbn            String?
+  pageCount       Int?
+  categories      String[] 
+  
+  categoryId      String?
+  category        Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("books")
 }
 
 model Post {

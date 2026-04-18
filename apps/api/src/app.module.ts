@@ -23,6 +23,7 @@ import { LocationsModule } from './locations/locations.module';
 import { AlertsModule } from './alerts/alerts.module';
 import { GeofencesModule } from './geofences/geofences.module';
 import { ELearningModule } from './e-learning/e-learning.module';
+import { BooksModule } from './books/books.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { ELearningModule } from './e-learning/e-learning.module';
     AlertsModule,
     GeofencesModule,
     ELearningModule,
+    BooksModule,
   ],
   controllers: [AppController],
   providers: [AppService],

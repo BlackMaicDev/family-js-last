@@ -76,6 +76,7 @@ export function Navbar() {
     pathname === '/documents' ||
     pathname === '/money' ||
     pathname === '/blog' ||
+    pathname === '/library' ||
     pathname.startsWith('/e-learning') ||
     pathname.startsWith('/exams')
   ) {
@@ -107,6 +108,7 @@ export function Navbar() {
               <MobileNavLink href="/" current={pathname}>{t('nav.home')}</MobileNavLink>
               <MobileNavLink href="/about" current={pathname}>{t('nav.about')}</MobileNavLink>
               <MobileNavLink href="/blog" current={pathname}>Blog</MobileNavLink>
+              <MobileNavLink href="/library" current={pathname}>Library</MobileNavLink>
               <MobileNavLink href="/e-learning" current={pathname}>{t('nav.elearning') || 'E-Learning'}</MobileNavLink>
 
               {/* Private Zone */}
@@ -228,6 +230,7 @@ export function Navbar() {
           <NavLink href="/" current={pathname}>{t('nav.home')}</NavLink>
           <NavLink href="/about" current={pathname}>{t('nav.about')}</NavLink>
           <NavLink href="/blog" current={pathname}>Blog</NavLink>
+          <NavLink href="/library" current={pathname}>Library</NavLink>
           <NavLink href="/e-learning" current={pathname}>{t('nav.elearning') || 'E-Learning'}</NavLink>
           {/* <NavLink href="/resume" current={pathname}>{t('nav.resume')}</NavLink> */}
 
@@ -278,6 +281,7 @@ export function Navbar() {
             <MobileNavLink href="/" current={pathname}>{t('nav.home')}</MobileNavLink>
             <MobileNavLink href="/about" current={pathname}>{t('nav.about')}</MobileNavLink>
             <MobileNavLink href="/blog" current={pathname}>Blog</MobileNavLink>
+            <MobileNavLink href="/library" current={pathname}>Library</MobileNavLink>
             <MobileNavLink href="/e-learning" current={pathname}>{t('nav.elearning') || 'E-Learning'}</MobileNavLink>
             {/* <MobileNavLink href="/resume" current={pathname}>{t('nav.resume')}</MobileNavLink> */}
 

@@ -167,7 +167,7 @@ export default function SubjectDetailPage() {
                                 </div>
                                 <h3 className="font-bold text-slate-900 dark:text-white mb-2 line-clamp-1">{exam.title}</h3>
                                 <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                                    <span className="flex items-center gap-1.5"><Star size={14} className="text-yellow-500" /> {exam._count.questions} ข้อ</span>
+                                    <span className="flex items-center gap-1.5"><Star size={14} className="text-yellow-500" /> {exam._count?.questions || 0} ข้อ</span>
                                     {exam.timeLimit && (
                                         <span className="flex items-center gap-1.5"><Clock size={14} /> {exam.timeLimit} นาที</span>
                                     )}

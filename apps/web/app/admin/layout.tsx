@@ -27,6 +27,7 @@ import {
     AlertTriangle,
     GraduationCap,
     ClipboardList,
+    BookOpen,
 } from 'lucide-react';
 
 // ====== Theme Context ======
@@ -47,6 +48,7 @@ const menuItems = [
     { label: 'Posts', href: '/admin/posts', icon: FileText },
     { label: 'Create Post', href: '/admin/createPost', icon: PenSquare },
     { label: 'Categories', href: '/admin/categories', icon: Tag },
+    { label: 'Library', href: '/admin/library', icon: BookOpen },
     { label: 'Documents', href: '/admin/documents', icon: Folder },
     { label: 'Gallery', href: '/admin/gallery', icon: ImageIcon },
     { label: 'Resume', href: '/admin/resume', icon: Briefcase },

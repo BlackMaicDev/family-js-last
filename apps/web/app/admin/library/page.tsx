@@ -37,13 +37,15 @@ interface LibraryBook {
   title: string;
   authors: string[];
   thumbnail?: string;
-  category?: { name: string };
+  bookCategory?: { name: string };
 }
 
 export default function AdminLibraryPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isbnQuery, setIsbnQuery] = useState('');
   const [suggestions, setSuggestions] = useState<GoogleBook[]>([]);
+
   const [isSearching, setIsSearching] = useState(false);
   const [selectedBook, setSelectedBook] = useState<GoogleBook | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -52,6 +54,17 @@ export default function AdminLibraryPage() {
   const [loadingLibrary, setLoadingLibrary] = useState(true);
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isManualEntry, setIsManualEntry] = useState(false);
+  
+  // Manual Entry Form State
+  const [manualBook, setManualBook] = useState({
+    title: '',
+    authors: '',
+    isbn: '',
+    description: '',
+    thumbnail: ''
+  });
+
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -63,7 +76,7 @@ export default function AdminLibraryPage() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch(`${apiUrl}/categories`);
+      const res = await fetch(`${apiUrl}/book-categories`);
       if (res.ok) setCategories(await res.json());
     } catch (err) {}
   };
@@ -78,34 +91,83 @@ export default function AdminLibraryPage() {
     }
   };
 
-  // Autocomplete logic
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchQuery.length > 2) {
-        handleSearch();
-      } else {
-        setSuggestions([]);
-      }
-    }, 500);
+  // Autocomplete logic removed to prevent rate limiting (429)
+  // Search is now manual via handleSearch function
 
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
 
-  const handleSearch = async () => {
+  const handleSearch = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (searchQuery.length < 2) return;
+    
     setIsSearching(true);
+    setSuggestions([]); // Clear old suggestions
     try {
-      const res = await fetch(`${apiUrl}/books/search?q=${encodeURIComponent(searchQuery)}`);
+      const res = await fetch(`${apiUrl}/books/search?q=intitle:${encodeURIComponent(searchQuery)}`);
       if (res.ok) {
-        setSuggestions(await res.json());
+        const data = await res.json();
+        setSuggestions(data);
+        if (data.length === 0) {
+          alert('ไม่พบหนังสือที่ค้นหา');
+        }
+      } else {
+        const err = await res.json().catch(() => ({}));
+        console.error('Search failed:', err);
+        alert('เกิดข้อผิดพลาดในการค้นหา (อาจโดน Rate Limit จาก Google)');
       }
-    } catch (err) {} finally {
+    } catch (err) {
+      console.error('Search failed:', err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleISBNSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isbnQuery.length < 10) return;
+
+    setIsSearching(true);
+    setSuggestions([]);
+    try {
+      const res = await fetch(`${apiUrl}/books/search?q=isbn:${encodeURIComponent(isbnQuery)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSuggestions(data);
+        if (data.length === 0) {
+          alert('ไม่พบหนังสือจาก ISBN นี้');
+        }
+      } else {
+        alert('เกิดข้อผิดพลาดในการค้นหา ISBN');
+      }
+    } catch (err) {
+      console.error('ISBN Search failed:', err);
+    } finally {
       setIsSearching(false);
     }
   };
 
   const handleAddToLibrary = async () => {
-    if (!selectedBook || !selectedCategoryId) {
-      alert('กรุณาเลือกหนังสือและหมวดหมู่');
+    const isManual = isManualEntry;
+    const bookData = isManual ? {
+      title: manualBook.title,
+      authors: manualBook.authors.split(',').map(a => a.trim()),
+      isbn: manualBook.isbn,
+      description: manualBook.description,
+      thumbnail: manualBook.thumbnail,
+      bookCategoryId: selectedCategoryId
+    } : {
+      title: selectedBook?.title,
+      authors: selectedBook?.authors,
+      description: selectedBook?.description,
+      thumbnail: selectedBook?.thumbnail,
+      isbn: selectedBook?.isbn,
+      pageCount: selectedBook?.pageCount,
+      categories: selectedBook?.categories,
+      bookCategoryId: selectedCategoryId,
+    };
+
+
+    if (!bookData.title || !selectedCategoryId) {
+      alert('กรุณากรอกชื่อหนังสือและเลือกหมวดหมู่');
       return;
     }
 
@@ -115,27 +177,21 @@ export default function AdminLibraryPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          title: selectedBook.title,
-          authors: selectedBook.authors,
-          description: selectedBook.description,
-          thumbnail: selectedBook.thumbnail,
-          isbn: selectedBook.isbn,
-          pageCount: selectedBook.pageCount,
-          categories: selectedBook.categories,
-          categoryId: selectedCategoryId,
-        }),
+        body: JSON.stringify(bookData),
       });
 
       if (res.ok) {
         setSuccessMessage('เพิ่มหนังสือเข้าห้องสมุดแล้ว!');
         setSelectedBook(null);
+        setManualBook({ title: '', authors: '', isbn: '', description: '', thumbnail: '' });
         setSearchQuery('');
+        setIsbnQuery('');
         setSuggestions([]);
+        setIsManualEntry(false);
         fetchLibraryBooks();
         setTimeout(() => setSuccessMessage(null), 3000);
       } else {
-        const err = await res.json();
+        const err = await res.json().catch(() => ({}));
         alert(err.message || 'เกิดข้อผิดพลาด');
       }
     } catch (err) {
@@ -180,117 +236,249 @@ export default function AdminLibraryPage() {
           <h1 className="text-2xl font-bold tracking-tight text-white">Library Management</h1>
           <p className="text-sm text-gray-400">ค้นหาและเพิ่มหนังสือเข้าห้องสมุดดิจิทัล</p>
         </div>
+        <button 
+          onClick={() => setIsManualEntry(!isManualEntry)}
+          className={`ml-auto px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+            isManualEntry 
+            ? 'bg-purple-500/20 border-purple-500/50 text-purple-400' 
+            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+          }`}
+        >
+          {isManualEntry ? 'Switch to Search' : '+ Add Manually'}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left Column: Search & Add */}
         <div className="space-y-6">
-          <div className="p-6 rounded-3xl bg-[#1A1A1A] border border-white/5 space-y-4">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Search size={20} className="text-[#C5A059]" />
-              Find New Book
-            </h2>
-            
-            <div className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="พิมพ์ชื่อหนังสือเพื่อค้นหา..."
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white outline-none focus:border-[#C5A059]/50 transition-all pl-12"
-              />
-              <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-              {isSearching && (
-                <Loader2 size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#C5A059] animate-spin" />
-              )}
+          {!isManualEntry ? (
+            <div className="p-6 rounded-3xl bg-[#1A1A1A] border border-white/5 space-y-4">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Search size={20} className="text-[#C5A059]" />
+                Find New Book
+              </h2>
               
-              {/* Autocomplete Suggestions */}
-              {suggestions.length > 0 && !selectedBook && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-[#242424] border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden max-h-[400px] overflow-y-auto">
-                  {suggestions.map((book) => (
+              <form onSubmit={handleSearch} className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="พิมพ์ชื่อหนังสือหรือผู้แต่ง..."
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white outline-none focus:border-[#C5A059]/50 transition-all pl-12 pr-24"
+                />
+                <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                  {isSearching ? (
+                    <Loader2 size={18} className="text-[#C5A059] animate-spin mr-2" />
+                  ) : (
                     <button
-                      key={book.id}
-                      onClick={() => {
-                        setSelectedBook(book);
-                        setSuggestions([]);
-                        setSearchQuery(book.title);
-                      }}
-                      className="w-full p-4 flex gap-4 text-left hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
+                      type="submit"
+                      className="px-4 py-1.5 bg-[#C5A059] hover:bg-[#b58d60] text-white text-xs font-bold rounded-xl transition-all"
                     >
-                      {book.thumbnail ? (
-                        <img src={book.thumbnail} alt="" className="w-12 h-16 object-cover rounded shadow-md" />
-                      ) : (
-                        <div className="w-12 h-16 bg-white/5 rounded flex items-center justify-center">
-                          <BookIcon size={16} className="text-gray-500" />
-                        </div>
-                      )}
-                      <div>
-                        <h4 className="text-sm font-bold text-white line-clamp-1">{book.title}</h4>
-                        <p className="text-xs text-gray-400 mt-1">{book.authors.join(', ')}</p>
-                        {book.categories?.[0] && (
-                          <span className="inline-block mt-2 px-2 py-0.5 rounded-full bg-white/5 text-[10px] text-gray-500">
-                            {book.categories[0]}
-                          </span>
-                        )}
-                      </div>
+                      Search Title
                     </button>
-                  ))}
+                  )}
+                </div>
+
+                {/* Autocomplete Suggestions */}
+                {suggestions.length > 0 && !selectedBook && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-[#242424] border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden max-h-[400px] overflow-y-auto">
+                    {suggestions.map((book) => (
+                      <button
+                        key={book.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedBook(book);
+                          setSuggestions([]);
+                          setSearchQuery(book.title);
+                        }}
+                        className="w-full p-4 flex gap-4 text-left hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
+                      >
+                        {book.thumbnail ? (
+                          <img src={book.thumbnail} alt="" className="w-12 h-16 object-cover rounded shadow-md" />
+                        ) : (
+                          <div className="w-12 h-16 bg-white/5 rounded flex items-center justify-center">
+                            <BookIcon size={16} className="text-gray-500" />
+                          </div>
+                        )}
+                        <div>
+                          <h4 className="text-sm font-bold text-white line-clamp-1">{book.title}</h4>
+                          <p className="text-xs text-gray-400 mt-1">{book.authors.join(', ')}</p>
+                          {book.categories?.[0] && (
+                            <span className="inline-block mt-2 px-2 py-0.5 rounded-full bg-white/5 text-[10px] text-gray-500">
+                              {book.categories[0]}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </form>
+
+              <div className="relative pt-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-px flex-1 bg-white/5"></div>
+                  <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">OR SEARCH BY ISBN</span>
+                  <div className="h-px flex-1 bg-white/5"></div>
+                </div>
+                <form onSubmit={handleISBNSearch} className="relative">
+                  <input
+                    type="text"
+                    value={isbnQuery}
+                    onChange={(e) => setIsbnQuery(e.target.value)}
+                    placeholder="กรอกหมายเลข ISBN (เช่น 978...)"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white outline-none focus:border-[#C5A059]/50 transition-all text-sm pr-24"
+                  />
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                    <button
+                      type="submit"
+                      disabled={isbnQuery.length < 10 || isSearching}
+                      className="px-4 py-1.5 bg-white/5 hover:bg-white/10 disabled:opacity-30 text-white text-xs font-bold rounded-xl transition-all border border-white/5"
+                    >
+                      Find ISBN
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Selected Book Preview (From Search) */}
+              {selectedBook && (
+                <div className="mt-6 p-5 rounded-2xl bg-white/5 border border-white/5 space-y-6 animate-fade-in">
+                  <div className="flex gap-6">
+                    {selectedBook.thumbnail && (
+                      <img src={selectedBook.thumbnail} alt={selectedBook.title} className="w-32 h-44 object-cover rounded-xl shadow-2xl" />
+                    )}
+                    <div className="flex-1 space-y-2">
+                      <div className="flex justify-between items-start">
+                        <h3 className="text-xl font-bold text-white leading-tight">{selectedBook.title}</h3>
+                        <button onClick={() => setSelectedBook(null)} className="text-gray-500 hover:text-white">
+                          <X size={20} />
+                        </button>
+                      </div>
+                      <p className="text-sm text-[#C5A059]">{selectedBook.authors.join(', ')}</p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {selectedBook.isbn && <span className="text-[10px] px-2 py-0.5 bg-white/5 rounded text-gray-400">ISBN: {selectedBook.isbn}</span>}
+                        {selectedBook.pageCount && <span className="text-[10px] px-2 py-0.5 bg-white/5 rounded text-gray-400">{selectedBook.pageCount} pages</span>}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Category</label>
+                      <div className="relative">
+                        <select 
+                          value={selectedCategoryId} 
+                          onChange={(e) => setSelectedCategoryId(e.target.value)}
+                          className="w-full bg-[#1A1A1A] border border-white/10 rounded-xl px-4 py-3 text-sm text-white appearance-none outline-none focus:border-[#C5A059]/50"
+                        >
+                          <option value="">เลือกหมวดหมู่เพื่อแสดงในห้องสมุด...</option>
+                          {categories.map(cat => (
+                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                          ))}
+                        </select>
+                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleAddToLibrary}
+                      disabled={saving}
+                      className="w-full py-4 bg-[#C5A059] hover:bg-[#b58d60] disabled:bg-gray-700 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2 shadow-xl shadow-[#C5A059]/20"
+                    >
+                      {saving ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
+                      {saving ? 'Adding to Library...' : 'Add to Collection'}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
-
-            {/* Selected Book Preview */}
-            {selectedBook && (
-              <div className="mt-6 p-5 rounded-2xl bg-white/5 border border-white/5 space-y-6 animate-fade-in">
-                <div className="flex gap-6">
-                  {selectedBook.thumbnail && (
-                    <img src={selectedBook.thumbnail} alt={selectedBook.title} className="w-32 h-44 object-cover rounded-xl shadow-2xl" />
-                  )}
-                  <div className="flex-1 space-y-2">
-                    <div className="flex justify-between items-start">
-                      <h3 className="text-xl font-bold text-white leading-tight">{selectedBook.title}</h3>
-                      <button onClick={() => setSelectedBook(null)} className="text-gray-500 hover:text-white">
-                        <X size={20} />
-                      </button>
-                    </div>
-                    <p className="text-sm text-[#C5A059]">{selectedBook.authors.join(', ')}</p>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {selectedBook.isbn && <span className="text-[10px] px-2 py-0.5 bg-white/5 rounded text-gray-400">ISBN: {selectedBook.isbn}</span>}
-                      {selectedBook.pageCount && <span className="text-[10px] px-2 py-0.5 bg-white/5 rounded text-gray-400">{selectedBook.pageCount} pages</span>}
-                    </div>
-                  </div>
+          ) : (
+            /* Manual Entry Form */
+            <div className="p-8 rounded-3xl bg-[#1A1A1A] border border-purple-500/20 space-y-6 animate-fade-in">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400">
+                  <Plus size={20} />
                 </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Category</label>
-                    <div className="relative">
-                      <select 
-                        value={selectedCategoryId} 
-                        onChange={(e) => setSelectedCategoryId(e.target.value)}
-                        className="w-full bg-[#1A1A1A] border border-white/10 rounded-xl px-4 py-3 text-sm text-white appearance-none outline-none focus:border-[#C5A059]/50"
-                      >
-                        <option value="">เลือกหมวดหมู่เพื่อแสดงในห้องสมุด...</option>
-                        {categories.map(cat => (
-                          <option key={cat.id} value={cat.id}>{cat.name}</option>
-                        ))}
-                      </select>
-                      <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleAddToLibrary}
-                    disabled={saving}
-                    className="w-full py-4 bg-[#C5A059] hover:bg-[#b58d60] disabled:bg-gray-700 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2 shadow-xl shadow-[#C5A059]/20"
-                  >
-                    {saving ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
-                    {saving ? 'Adding to Library...' : 'Add to Collection'}
-                  </button>
-                </div>
+                <h2 className="text-lg font-bold text-white">Add Book Manually</h2>
               </div>
-            )}
-          </div>
+
+              <div className="grid grid-cols-1 gap-5">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Title *</label>
+                  <input
+                    type="text"
+                    value={manualBook.title}
+                    onChange={(e) => setManualBook({ ...manualBook, title: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500/50"
+                    placeholder="ชื่อหนังสือ"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Authors (comma separated)</label>
+                  <input
+                    type="text"
+                    value={manualBook.authors}
+                    onChange={(e) => setManualBook({ ...manualBook, authors: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500/50"
+                    placeholder="เช่น J.K. Rowling"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">ISBN</label>
+                    <input
+                      type="text"
+                      value={manualBook.isbn}
+                      onChange={(e) => setManualBook({ ...manualBook, isbn: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500/50"
+                      placeholder="978..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Thumbnail URL</label>
+                    <input
+                      type="text"
+                      value={manualBook.thumbnail}
+                      onChange={(e) => setManualBook({ ...manualBook, thumbnail: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500/50"
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Category *</label>
+                  <div className="relative">
+                    <select 
+                      value={selectedCategoryId} 
+                      onChange={(e) => setSelectedCategoryId(e.target.value)}
+                      className="w-full bg-[#1A1A1A] border border-white/10 rounded-xl px-4 py-3 text-sm text-white appearance-none outline-none focus:border-purple-500/50"
+                    >
+                      <option value="">เลือกหมวดหมู่...</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                    <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleAddToLibrary}
+                  disabled={saving || !manualBook.title || !selectedCategoryId}
+                  className="w-full py-4 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-700 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2 shadow-xl shadow-purple-600/20 mt-2"
+                >
+                  {saving ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
+                  {saving ? 'Saving...' : 'Add to Collection Manually'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Column: Collection List */}
@@ -339,9 +527,9 @@ export default function AdminLibraryPage() {
                       <h4 className="text-sm font-bold text-white line-clamp-1">{book.title}</h4>
                       <p className="text-xs text-gray-400 mt-1 line-clamp-1">{book.authors.join(', ')}</p>
                       <div className="flex items-center gap-2 mt-2">
-                        {book.category && (
+                        {book.bookCategory && (
                           <span className="text-[10px] px-2 py-0.5 bg-[#C5A059]/10 text-[#C5A059] rounded-md font-medium">
-                            {book.category.name}
+                            {book.bookCategory.name}
                           </span>
                         )}
                       </div>

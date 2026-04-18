@@ -81,10 +81,19 @@ model Category {
   name  String @unique
   slug  String @unique
   posts Post[]
-  books Book[]
 
   @@map("categories")
 }
+
+model BookCategory {
+  id    String @id @default(uuid())
+  name  String @unique
+  slug  String @unique
+  books Book[]
+
+  @@map("book_categories")
+}
+
 
 model Book {
   id              String   @id @default(uuid())
@@ -96,8 +105,8 @@ model Book {
   pageCount       Int?
   categories      String[] 
   
-  categoryId      String?
-  category        Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  bookCategoryId  String?
+  bookCategory    BookCategory? @relation(fields: [bookCategoryId], references: [id], onDelete: SetNull)
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

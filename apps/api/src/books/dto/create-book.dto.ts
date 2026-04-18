@@ -31,5 +31,5 @@ export class CreateBookDto {
 
   @IsString()
   @IsOptional()
-  categoryId?: string;
+  bookCategoryId?: string;
 }

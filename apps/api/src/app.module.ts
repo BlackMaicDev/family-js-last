@@ -24,6 +24,7 @@ import { AlertsModule } from './alerts/alerts.module';
 import { GeofencesModule } from './geofences/geofences.module';
 import { ELearningModule } from './e-learning/e-learning.module';
 import { BooksModule } from './books/books.module';
+import { BookCategoriesModule } from './book-categories/book-categories.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { BooksModule } from './books/books.module';
     GeofencesModule,
     ELearningModule,
     BooksModule,
+    BookCategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

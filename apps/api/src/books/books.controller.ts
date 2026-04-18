@@ -3,6 +3,7 @@ import { BooksService } from './books.service';
 import { CreateBookDto } from './dto/create-book.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('books')
 export class BooksController {
@@ -15,6 +16,7 @@ export class BooksController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   create(@Body() createBookDto: CreateBookDto) {
     return this.booksService.create(createBookDto);
   }
@@ -31,6 +33,7 @@ export class BooksController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   remove(@Param('id') id: string) {
     return this.booksService.remove(id);
   }

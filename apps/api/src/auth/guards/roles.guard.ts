@@ -1,17 +1,27 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { ROLES_KEY } from '../decorators/roles.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-    constructor(private reflector: Reflector) { }
+  constructor(private reflector: Reflector) {}
 
-    canActivate(context: ExecutionContext): boolean {
-        const { user } = context.switchToHttp().getRequest();
+  canActivate(context: ExecutionContext): boolean {
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
-        // เช็คว่า User ที่ผ่าน JWT Guard มา มี role เป็น ADMIN หรือไม่
-        if (user?.role !== 'ADMIN') {
-            throw new ForbiddenException('เฉพาะ Admin เท่านั้นที่เข้าถึงได้');
-        }
-        return true;
+    if (!requiredRoles) {
+      return true;
     }
+
+    const { user } = context.switchToHttp().getRequest();
+    
+    if (!user || !requiredRoles.includes(user.role)) {
+      throw new ForbiddenException('คุณไม่มีสิทธิ์เข้าถึงส่วนนี้ (Admin Only)');
+    }
+
+    return true;
+  }
 }

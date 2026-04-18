@@ -1,6 +1,8 @@
 import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
 import { ELearningService } from './e-learning.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
 import {
@@ -34,17 +36,26 @@ export class ELearningController {
     return this.eLearningService.getGradeById(id);
   }
 
-  // Admin APIs (Assume they are protected by AdminGuard in real app, keeping simple for now)
+  // Admin APIs (Locked for Admin Only)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @Post('grades')
   async createGrade(@Body() data: CreateGradeDto) {
     return this.eLearningService.createGrade(data);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @Put('grades/:id')
   async updateGrade(@Param('id') id: string, @Body() data: UpdateGradeDto) {
     return this.eLearningService.updateGrade(id, data);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @Delete('grades/:id')
   async deleteGrade(@Param('id') id: string) {
     return this.eLearningService.deleteGrade(id);
@@ -56,11 +67,17 @@ export class ELearningController {
     return this.eLearningService.getExamTypes();
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @Post('exam-types')
   async createExamType(@Body() data: CreateExamTypeDto) {
     return this.eLearningService.createExamType(data);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @Delete('exam-types/:id')
   async deleteExamType(@Param('id') id: string) {
     return this.eLearningService.deleteExamType(id);
@@ -77,32 +94,50 @@ export class ELearningController {
     return this.eLearningService.getSubjectById(id);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @Post('subjects')
   async createSubject(@Body() data: CreateSubjectDto) {
     return this.eLearningService.createSubject(data);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @Put('subjects/:id')
   async updateSubject(@Param('id') id: string, @Body() data: UpdateSubjectDto) {
     return this.eLearningService.updateSubject(id, data);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @Delete('subjects/:id')
   async deleteSubject(@Param('id') id: string) {
     return this.eLearningService.deleteSubject(id);
   }
 
   // --- Lessons ---
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @Post('lessons')
   async createLesson(@Body() data: CreateLessonDto) {
     return this.eLearningService.createLesson(data);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @Put('lessons/:id')
   async updateLesson(@Param('id') id: string, @Body() data: UpdateLessonDto) {
     return this.eLearningService.updateLesson(id, data);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @Delete('lessons/:id')
   async deleteLesson(@Param('id') id: string) {
     return this.eLearningService.deleteLesson(id);
@@ -125,32 +160,50 @@ export class ELearningController {
     return this.eLearningService.getExamById(id, isStudent);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @Post('exams')
   async createExam(@Body() data: CreateExamDto) {
     return this.eLearningService.createExam(data);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @Put('exams/:id')
   async updateExam(@Param('id') id: string, @Body() data: UpdateExamDto) {
     return this.eLearningService.updateExam(id, data);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @Delete('exams/:id')
   async deleteExam(@Param('id') id: string) {
     return this.eLearningService.deleteExam(id);
   }
 
   // --- Questions (Admin) ---
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @Post('questions')
   async createQuestion(@Body() body: CreateQuestionDto) {
     return this.eLearningService.createQuestion(body.data, body.options);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @Put('questions/:id')
   async updateQuestion(@Param('id') id: string, @Body() body: UpdateQuestionDto) {
     return this.eLearningService.updateQuestion(id, body.data, body.options);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
   @Delete('questions/:id')
   async deleteQuestion(@Param('id') id: string) {
     return this.eLearningService.deleteQuestion(id);

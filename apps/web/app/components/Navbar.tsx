@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Menu, X, Search, Wallet, ArrowLeft, Share2, Bookmark, ChevronDown } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
+import { Menu, X, Search, Wallet, ArrowLeft, Share2, Bookmark, ChevronDown, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import SearchInput from '@/app/components/SearchInput'; // เปิดใช้งาน Search ได้แล้วครับ (ถ้า SearchInput ปกติ)
 import { ThemeToggle } from '@/app/components/ThemeToggle';
@@ -12,6 +12,7 @@ import { LanguageToggle } from '@/app/components/LanguageToggle';
 
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobilePrivateOpen, setIsMobilePrivateOpen] = useState(false);
@@ -35,6 +36,21 @@ export function Navbar() {
     };
     checkAuth();
   }, [pathname]);
+
+  const handleLogout = async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      await fetch(`${apiUrl}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      setUser(null);
+      router.push('/');
+      router.refresh();
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
+  };
 
   // --- 1. FIXED SCROLL LOGIC (แก้ปัญหาหน้ากระพริบ) ---
   useEffect(() => {
@@ -132,12 +148,21 @@ export function Navbar() {
               <div className="flex items-center justify-center gap-4 w-full mt-2">
                 <ThemeToggle />
                 {user ? (
-                  <Link href={user.role === 'ADMIN' ? '/admin/dashboard' : '/e-learning'} className="flex items-center justify-center gap-2 flex-1 max-w-[200px] py-2 bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 text-sm font-bold rounded-full hover:text-[#C5A059] transition-all border border-stone-200 dark:border-stone-700">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#C5A059] to-[#714e38] flex items-center justify-center text-[10px] text-white">
-                      {user.username.charAt(0).toUpperCase()}
-                    </div>
-                    <span className="truncate max-w-[120px]">{user.username}</span>
-                  </Link>
+                  <>
+                    <Link href={user.role === 'ADMIN' ? '/admin/dashboard' : '/e-learning'} className="flex items-center justify-center gap-2 flex-1 max-w-[200px] py-2 bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 text-sm font-bold rounded-full hover:text-[#C5A059] transition-all border border-stone-200 dark:border-stone-700">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#C5A059] to-[#714e38] flex items-center justify-center text-[10px] text-white">
+                        {user.username.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="truncate max-w-[120px]">{user.username}</span>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center justify-center gap-2 flex-1 max-w-[200px] py-2 bg-red-50 dark:bg-red-900/10 text-red-500 text-sm font-bold rounded-full hover:bg-red-500 hover:text-white transition-all border border-red-100 dark:border-red-900/20"
+                    >
+                      <LogOut size={16} />
+                      <span>Logout</span>
+                    </button>
+                  </>
                 ) : (
                   <Link href="/login" className="flex-1 max-w-[200px] py-2.5 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 text-sm font-bold rounded-full hover:bg-[#C5A059] dark:hover:bg-[#C5A059] text-center transition-all">
                     {t('nav.login')}
@@ -260,14 +285,23 @@ export function Navbar() {
           <ThemeToggle />
           <SearchInput />
           {user ? (
-            <Link href={user.role === 'ADMIN' ? '/admin/dashboard' : '/e-learning'} className="flex items-center gap-2 pl-2 pr-4 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-full hover:border-[#C5A059] transition-all group">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#C5A059] to-[#714e38] flex items-center justify-center text-xs font-bold text-white shadow-sm">
-                {user.username.charAt(0).toUpperCase()}
-              </div>
-              <span className="text-xs font-bold text-stone-700 dark:text-stone-300 group-hover:text-[#C5A059] max-w-[100px] truncate">
-                {user.username}
-              </span>
-            </Link>
+            <div className="flex items-center gap-1">
+              <Link href={user.role === 'ADMIN' ? '/admin/dashboard' : '/e-learning'} className="flex items-center gap-2 pl-2 pr-4 py-1.5 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-full hover:border-[#C5A059] transition-all group">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#C5A059] to-[#714e38] flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                  {user.username.charAt(0).toUpperCase()}
+                </div>
+                <span className="text-xs font-bold text-stone-700 dark:text-stone-300 group-hover:text-[#C5A059] max-w-[100px] truncate">
+                  {user.username}
+                </span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                title="Logout"
+                className="p-2 text-stone-400 hover:text-red-500 transition-colors"
+              >
+                <LogOut size={18} />
+              </button>
+            </div>
           ) : (
             <Link href="/login" className="px-5 py-2 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 text-xs font-bold rounded-full hover:bg-[#C5A059] dark:hover:bg-[#C5A059] transition-all hover:scale-105 hover:shadow-md">
               {t('nav.login')}
@@ -309,18 +343,28 @@ export function Navbar() {
               </span>
             </MobileNavLink> */}
 
-            <div className="flex items-center justify-center gap-4 w-full mt-2">
-              <LanguageToggle />
-              <ThemeToggle />
+            <div className="flex flex-col items-center gap-3 w-full mt-2">
+              <div className="flex items-center justify-center gap-4 w-full">
+                <LanguageToggle />
+                <ThemeToggle />
+              </div>
               {user ? (
-                <Link href={user.role === 'ADMIN' ? '/admin/dashboard' : '/e-learning'} className="flex items-center justify-center gap-2 flex-1 py-2.5 bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 text-sm font-bold rounded-full hover:text-[#C5A059] border border-stone-200 dark:border-stone-700">
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#C5A059] to-[#714e38] flex items-center justify-center text-[10px] text-white">
-                    {user.username.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="truncate">{user.username}</span>
-                </Link>
+                <div className="flex flex-col items-center gap-2 w-full">
+                  <Link href={user.role === 'ADMIN' ? '/admin/dashboard' : '/e-learning'} className="flex items-center justify-center gap-2 w-full max-w-[280px] py-2.5 bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 text-sm font-bold rounded-full hover:text-[#C5A059] border border-stone-200 dark:border-stone-700">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#C5A059] to-[#714e38] flex items-center justify-center text-[10px] text-white">
+                      {user.username.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="truncate">{user.username}</span>
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center justify-center gap-2 w-full max-w-[280px] py-2.5 text-red-500 text-sm font-bold rounded-full hover:bg-red-50 transition-all"
+                  >
+                    <LogOut size={18} /> Logout
+                  </button>
+                </div>
               ) : (
-                <Link href="/login" className="flex-1 py-2.5 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 text-sm font-bold rounded-full hover:bg-[#C5A059] dark:hover:bg-[#C5A059] text-center">
+                <Link href="/login" className="w-full max-w-[280px] py-2.5 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 text-sm font-bold rounded-full hover:bg-[#C5A059] dark:hover:bg-[#C5A059] text-center">
                   {t('nav.login')}
                 </Link>
               )}

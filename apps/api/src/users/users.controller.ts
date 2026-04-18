@@ -6,8 +6,11 @@ import { Role } from '@prisma/client';
 import { deleteFileFromUrl } from '../utils/file.util';
 
 
+import { Roles } from '../auth/decorators/roles.decorator';
+
 @Controller('admin/users')
-@UseGuards(JwtAuthGuard, RolesGuard) // 🛡️ ล็อก 2 ชั้น: ต้อง Login และต้องเป็น Admin
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
 export class UserManagementController {
     constructor(private prisma: PrismaService) { }
 
@@ -30,6 +33,7 @@ export class UserManagementController {
                 id: true,
                 username: true,
                 nickname: true,
+                email: true,
                 role: true,
                 isActive: true, //
                 lastLogin: true,

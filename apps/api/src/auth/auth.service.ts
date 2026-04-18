@@ -35,7 +35,7 @@ export class AuthService {
                     email: data.email,
                     password: hashedPassword,
                     nickname: data.nickname || data.username,
-                    role: 'USER', // ค่าเริ่มต้นตาม Schema
+                    role: data.role || 'USER', // ใช้ role ที่ส่งมา หรือ default เป็น USER
                 },
             });
 

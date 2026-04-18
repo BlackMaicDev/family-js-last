@@ -15,4 +15,8 @@ export class RegisterDto {
     @IsString()
     @IsOptional()
     nickname?: string;
+
+    @IsString()
+    @IsOptional()
+    role?: 'ADMIN' | 'USER' | 'STUDENT';
 }

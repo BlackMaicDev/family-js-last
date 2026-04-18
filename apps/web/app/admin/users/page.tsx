@@ -29,7 +29,7 @@ interface User {
     username: string;
     email: string | null;
     nickname: string;
-    role: 'ADMIN' | 'USER';
+    role: 'ADMIN' | 'USER' | 'STUDENT';
     isActive: boolean;
     avatarUrl: string | null;
     lastLogin: string | null;
@@ -39,6 +39,7 @@ interface User {
 const roleConfig = {
     ADMIN: { label: 'Admin', icon: ShieldAlert, bgClass: 'bg-amber-500/10', textClass: 'text-amber-500' },
     USER: { label: 'User', icon: UserCheck, bgClass: 'bg-emerald-500/10', textClass: 'text-emerald-500' },
+    STUDENT: { label: 'Student', icon: UserCog, bgClass: 'bg-blue-500/10', textClass: 'text-blue-500' },
 };
 
 const ITEMS_PER_PAGE = 10;
@@ -49,7 +50,7 @@ export default function UsersPage() {
     const [error, setError] = useState<string | null>(null);
 
     const [searchQuery, setSearchQuery] = useState('');
-    const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'USER'>('ALL');
+    const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'USER' | 'STUDENT'>('ALL');
     const [currentPage, setCurrentPage] = useState(1);
     const [sortField, setSortField] = useState<'createdAt' | 'nickname'>('createdAt');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
@@ -61,7 +62,7 @@ export default function UsersPage() {
 
     // Add User State
     const [showAddModal, setShowAddModal] = useState(false);
-    const [addForm, setAddForm] = useState({ username: '', email: '', password: '', nickname: '' });
+    const [addForm, setAddForm] = useState({ username: '', email: '', password: '', nickname: '', role: 'STUDENT' });
     const [addLoading, setAddLoading] = useState(false);
     const [addError, setAddError] = useState<string | null>(null);
 
@@ -153,7 +154,7 @@ export default function UsersPage() {
             // Successfully added user, refresh list
             await fetchUsers();
             setShowAddModal(false);
-            setAddForm({ username: '', email: '', password: '', nickname: '' });
+            setAddForm({ username: '', email: '', password: '', nickname: '', role: 'STUDENT' });
         } catch (err: unknown) {
             setAddError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการสร้างบัญชี');
         } finally {
@@ -252,7 +253,7 @@ export default function UsersPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                    {['ALL', 'USER', 'ADMIN'].map((role) => {
+                    {['ALL', 'USER', 'STUDENT', 'ADMIN'].map((role) => {
                         const isActive = roleFilter === role;
                         const config = role !== 'ALL' ? roleConfig[role as keyof typeof roleConfig] : null;
                         return (
@@ -305,6 +306,7 @@ export default function UsersPage() {
                                         <th className="text-left py-3.5 px-6 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--admin-muted)' }}>
                                             <button onClick={() => toggleSort('nickname')} className="flex items-center gap-1 hover:opacity-70 transition-opacity"><span>User</span><ArrowUpDown size={12} className="opacity-40" /></button>
                                         </th>
+                                        <th className="text-left py-3.5 px-4 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--admin-muted)' }}>Email</th>
                                         <th className="text-left py-3.5 px-4 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--admin-muted)' }}>Role</th>
                                         <th className="text-left py-3.5 px-4 text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--admin-muted)' }}>Status</th>
                                         <th className="text-left py-3.5 px-4 text-xs font-semibold uppercase tracking-wider hidden sm:table-cell" style={{ color: 'var(--admin-muted)' }}>
@@ -337,18 +339,16 @@ export default function UsersPage() {
                                                         )}
                                                         <div className="min-w-0">
                                                             <p className="font-semibold truncate" style={{ color: 'var(--admin-fg)' }}>{user.nickname}</p>
-                                                            <div className="flex items-center gap-1.5 mt-0.5">
-                                                                <span className="text-[11px] truncate" style={{ color: 'var(--admin-muted)' }}>@{user.username}</span>
-                                                                {user.email && (
-                                                                    <>
-                                                                        <span style={{ color: 'var(--admin-border-hover)' }}>•</span>
-                                                                        <span className="text-[11px] truncate flex items-center gap-0.5" style={{ color: 'var(--admin-muted)' }}>
-                                                                            <Mail size={10} /> {user.email}
-                                                                        </span>
-                                                                    </>
-                                                                )}
-                                                            </div>
+                                                            <span className="text-[11px] truncate block mt-0.5" style={{ color: 'var(--admin-muted)' }}>@{user.username}</span>
                                                         </div>
+                                                    </div>
+                                                </td>
+
+                                                {/* Email */}
+                                                <td className="py-3.5 px-4">
+                                                    <div className="flex items-center gap-1.5" style={{ color: 'var(--admin-fg-secondary)' }}>
+                                                        <Mail size={12} className="opacity-60" />
+                                                        <span className="text-xs truncate max-w-[180px]">{user.email || '-'}</span>
                                                     </div>
                                                 </td>
 
@@ -599,6 +599,21 @@ export default function UsersPage() {
                                         className="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
                                         style={{ backgroundColor: 'var(--admin-hover)', border: '1px solid var(--admin-border)', color: 'var(--admin-fg)' }}
                                     />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'var(--admin-muted)' }}>
+                                        Role <span className="text-red-400">*</span>
+                                    </label>
+                                    <select
+                                        value={addForm.role} onChange={e => setAddForm({ ...addForm, role: e.target.value })}
+                                        className="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
+                                        style={{ backgroundColor: 'var(--admin-hover)', border: '1px solid var(--admin-border)', color: 'var(--admin-fg)' }}
+                                    >
+                                        <option value="STUDENT">Student (ทำข้อสอบได้)</option>
+                                        <option value="USER">User (ทั่วไป)</option>
+                                        <option value="ADMIN">Admin (จัดการระบบ)</option>
+                                    </select>
                                 </div>
                             </div>
 

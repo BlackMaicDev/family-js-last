@@ -132,19 +132,41 @@ export class ELearningService {
     });
   }
 
-  async getExamById(id: string) {
+  async getExamById(id: string, isStudent: boolean = false) {
     const exam = await this.prisma.exam.findUnique({
       where: { id },
       include: { 
         subject: { include: { gradeLevel: true } }, 
         examType: true, 
         lesson: { include: { subject: { include: { gradeLevel: true } } } },
-        questions: { include: { options: true }, orderBy: { order: 'asc' } }
+        questions: { include: { options: true } }
       }
     });
     if (!exam) throw new NotFoundException('Exam not found');
+
+    // ถ้าเป็นนักเรียนทำข้อสอบ และมีการตั้งค่า Question Limit ไว้
+    if (isStudent && exam.questionLimit && exam.questions.length > 0) {
+      // สุ่มข้อสอบทั้งหมด
+      const shuffled = this.shuffleArray([...exam.questions]);
+      // ตัดเอาตามจำนวนที่จำกัดไว้ (ถ้าคลังมีน้อยกว่าที่ตั้งไว้ ก็เอาเท่าที่มี)
+      const limit = Math.min(exam.questionLimit, shuffled.length);
+      exam.questions = shuffled.slice(0, limit);
+    } else {
+      // ถ้าไม่ใช่การสอบ หรือไม่ได้ตั้ง Limit ให้เรียงตามลำดับปกติ
+      exam.questions.sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+
     return exam;
   }
+
+  private shuffleArray<T>(array: T[]): T[] {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
 
   async createExam(data: Prisma.ExamUncheckedCreateInput) {
     return this.prisma.exam.create({ data });
@@ -218,7 +240,11 @@ export class ELearningService {
     if (attempt.status === 'COMPLETED') throw new Error('Exam already submitted');
 
     let score = 0;
-    const totalScore = attempt.exam.questions.length;
+    const poolSize = attempt.exam.questions.length;
+    const totalScore = attempt.exam.questionLimit 
+      ? Math.min(attempt.exam.questionLimit, poolSize) 
+      : poolSize;
+
 
     // Evaluate answers
     const answersData = answers.map(ans => {

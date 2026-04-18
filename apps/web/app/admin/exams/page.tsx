@@ -20,6 +20,7 @@ interface Exam {
   subject: Subject;
   examType: ExamType | null;
   lesson?: { id: string; title: string } | null;
+  questionLimit: number | null;
   _count?: { questions: number; attempts: number };
 }
 
@@ -115,7 +116,8 @@ export default function AdminExamsPage() {
     timeLimit: '', 
     subjectId: '', 
     examTypeId: '',
-    lessonId: '' 
+    lessonId: '',
+    questionLimit: '' 
   });
   const [editingExam, setEditingExam] = useState<Exam | null>(null);
   const [examSaving, setExamSaving] = useState(false);
@@ -155,7 +157,7 @@ export default function AdminExamsPage() {
   };
 
   const openAddExam = () => {
-    setExamForm({ title: '', description: '', timeLimit: '', subjectId: subjects[0]?.id || '', examTypeId: '', lessonId: '' });
+    setExamForm({ title: '', description: '', timeLimit: '', subjectId: subjects[0]?.id || '', examTypeId: '', lessonId: '', questionLimit: '' });
     setEditingExam(null);
     setExamModal('add');
   };
@@ -168,6 +170,7 @@ export default function AdminExamsPage() {
       subjectId: exam.subject.id,
       examTypeId: exam.examType?.id || '',
       lessonId: exam.lesson?.id || '',
+      questionLimit: exam.questionLimit?.toString() || '',
     });
     setEditingExam(exam);
     setExamModal('edit');
@@ -188,6 +191,7 @@ export default function AdminExamsPage() {
         examTypeId: examForm.examTypeId || undefined,
         lessonId: examForm.lessonId || undefined,
         timeLimit: examForm.timeLimit ? parseInt(examForm.timeLimit) : null,
+        questionLimit: examForm.questionLimit ? parseInt(examForm.questionLimit) : null,
       };
       const res = await fetch(url, {
         method: isEdit ? 'PUT' : 'POST',
@@ -326,6 +330,9 @@ export default function AdminExamsPage() {
 
           <Field label="เวลาในการสอบ (นาที — เว้นว่างไว้หากไม่จำกัด)" value={examForm.timeLimit}
             onChange={v => setExamForm(p => ({ ...p, timeLimit: v }))} placeholder="เช่น 60" type="number" />
+
+          <Field label="จำนวนข้อที่จะสุ่มให้ทำ (สุ่มจากคลังทั้งหมด — เว้นว่างไว้หากต้องการให้ทำทุกข้อ)" value={examForm.questionLimit}
+            onChange={v => setExamForm(p => ({ ...p, questionLimit: v }))} placeholder="เช่น 20" type="number" />
 
           <Field label="คำอธิบาย" value={examForm.description}
             onChange={v => setExamForm(p => ({ ...p, description: v }))} placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)" type="textarea" />

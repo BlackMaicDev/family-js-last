@@ -120,8 +120,9 @@ export class ELearningController {
   }
 
   @Get('exams/:id')
-  async getExamById(@Param('id') id: string) {
-    return this.eLearningService.getExamById(id);
+  async getExamById(@Param('id') id: string, @Query('student') student?: string) {
+    const isStudent = student === 'true';
+    return this.eLearningService.getExamById(id, isStudent);
   }
 
   @Post('exams')

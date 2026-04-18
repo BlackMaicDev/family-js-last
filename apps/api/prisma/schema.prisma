@@ -403,6 +403,8 @@ model Exam {
   title       String
   description String?   @db.Text
   timeLimit   Int?      // จับเวลา (นาที) Null = ไม่จำกัดเวลา
+  questionLimit Int?      // จำนวนข้อที่จะให้ทำ (สุ่มจากคลัง)
+
   
   subjectId   String
   subject     Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)

@@ -34,7 +34,7 @@ export default function TakeExamPage() {
 
       // Fetch exam details via Admin-like endpoint for now, or a specific student endpoint 
       // Actually /exams/:id is public in our controller demo!
-      const examRes = await fetch(`${apiUrl}/e-learning/exams/${examId}`, { credentials: 'include' });
+      const examRes = await fetch(`${apiUrl}/e-learning/exams/${examId}?student=true`, { credentials: 'include' });
       if (!examRes.ok) throw new Error('โหลดโจทย์ไม่สำเร็จ');
       const examData = await examRes.json();
       setExam(examData);

@@ -161,10 +161,14 @@ export class CreateExamDto {
   @IsString()
   examTypeId?: string;
 
-  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   lessonId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  questionLimit?: number;
 }
 
 export class UpdateExamDto {
@@ -197,6 +201,11 @@ export class UpdateExamDto {
   @IsOptional()
   @IsString()
   lessonId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  questionLimit?: number;
 }
 
 export class OptionDto {

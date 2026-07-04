@@ -219,10 +219,10 @@ export default function AdminLibraryPage() {
             
             <form onSubmit={handleScrape} className="relative flex gap-2">
               <input
-                type="url"
+                type="text"
                 value={scrapeUrl}
                 onChange={(e) => setScrapeUrl(e.target.value)}
-                placeholder="วางลิงก์หน้าหนังสือเพื่อดึงข้อมูลอัตโนมัติ..."
+                placeholder="วางลิงก์หน้าหนังสือ หรือ กรอก ISBN เพื่อดึงข้อมูลอัตโนมัติ..."
                 className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-white outline-none focus:border-[#C5A059]/50 transition-all text-sm"
               />
               <button

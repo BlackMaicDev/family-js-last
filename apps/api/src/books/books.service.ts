@@ -7,17 +7,65 @@ import * as cheerio from 'cheerio';
 export class BooksService {
   constructor(private prisma: PrismaService) {}
 
-  async scrapeBook(url: string) {
-    console.log(`Scraping book from: ${url}`);
+  async scrapeBook(inputUrl: string) {
+    console.log(`Scraping book from input: ${inputUrl}`);
     try {
-      const response = await fetch(url, {
+      let targetUrl = inputUrl;
+      const isIsbn = /^[\d-]+$/.test(inputUrl.trim()) && inputUrl.replace(/-/g, '').trim().length >= 10;
+      
+      if (isIsbn) {
+        const isbn = inputUrl.replace(/-/g, '').trim();
+        const searchUrl = `https://www.se-ed.com/product-search/Keyword.aspx?keyword=${isbn}&search=keyword`;
+        console.log(`Searching ISBN on SE-ED: ${searchUrl}`);
+        
+        const searchRes = await fetch(searchUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        });
+        
+        if (searchRes.ok) {
+          const searchHtml = await searchRes.text();
+          const $s = cheerio.load(searchHtml);
+          const firstLink = $s('a[href*="/product/"]').first().attr('href');
+          
+          if (firstLink) {
+            targetUrl = firstLink.startsWith('http') ? firstLink : `https://www.se-ed.com${firstLink}`;
+            console.log(`Resolved SE-ED Product URL: ${targetUrl}`);
+          }
+        }
+      }
+
+      if (!targetUrl.startsWith('http')) {
+        // Fallback to Google Books if ISBN not found on SE-ED
+        if (isIsbn) {
+          const isbn = inputUrl.replace(/-/g, '').trim();
+          console.log(`Fallback to Google Books for ISBN: ${isbn}`);
+          const gbResults = await this.searchGoogleBooks(`isbn:${isbn}`);
+          if (gbResults && gbResults.length > 0) {
+            const gb = gbResults[0];
+            return {
+              title: gb.title || '',
+              authors: gb.authors || [],
+              publisher: '',
+              price: null,
+              isbn: gb.isbn || isbn,
+              thumbnail: gb.thumbnail || '',
+              description: gb.description || ''
+            };
+          }
+        }
+        throw new Error('Invalid URL or ISBN not found');
+      }
+
+      const response = await fetch(targetUrl, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         },
       });
-      if (!response.ok) throw new Error('Failed to fetch');
+      if (!response.ok) throw new Error('Failed to fetch product page');
       const html = await response.text();
       const $ = cheerio.load(html);
+      
+      const url = targetUrl; // use targetUrl for site matching
       
       let title = '';
       let author = '';

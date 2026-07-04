@@ -15,44 +15,39 @@ export class BooksService {
       
       if (isIsbn) {
         const isbn = inputUrl.replace(/-/g, '').trim();
-        const searchUrl = `https://www.se-ed.com/product-search/Keyword.aspx?keyword=${isbn}&search=keyword`;
-        console.log(`Searching ISBN on SE-ED: ${searchUrl}`);
+        const searchUrl = `https://thailand.kinokuniya.com/bw/${isbn}`;
+        console.log(`Searching ISBN on Kinokuniya: ${searchUrl}`);
         
         const searchRes = await fetch(searchUrl, {
           headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
         });
         
         if (searchRes.ok) {
-          const searchHtml = await searchRes.text();
-          const $s = cheerio.load(searchHtml);
-          const firstLink = $s('a[href*="/product/"]').first().attr('href');
-          
-          if (firstLink) {
-            targetUrl = firstLink.startsWith('http') ? firstLink : `https://www.se-ed.com${firstLink}`;
-            console.log(`Resolved SE-ED Product URL: ${targetUrl}`);
+          targetUrl = searchUrl;
+          console.log(`Resolved Kinokuniya Product URL: ${targetUrl}`);
+        } else {
+          console.log(`Fallback to Google Books for ISBN: ${isbn}`);
+          try {
+            const gbResults = await this.searchGoogleBooks(`isbn:${isbn}`);
+            if (gbResults && gbResults.length > 0) {
+              const gb = gbResults[0];
+              return {
+                title: gb.title || '',
+                authors: gb.authors || [],
+                publisher: '',
+                price: null,
+                isbn: gb.isbn || isbn,
+                thumbnail: gb.thumbnail || '',
+                description: gb.description || ''
+              };
+            }
+          } catch (gbErr) {
+            console.error('Google Books API fallback failed (Quota exceeded?):', gbErr);
           }
         }
       }
 
       if (!targetUrl.startsWith('http')) {
-        // Fallback to Google Books if ISBN not found on SE-ED
-        if (isIsbn) {
-          const isbn = inputUrl.replace(/-/g, '').trim();
-          console.log(`Fallback to Google Books for ISBN: ${isbn}`);
-          const gbResults = await this.searchGoogleBooks(`isbn:${isbn}`);
-          if (gbResults && gbResults.length > 0) {
-            const gb = gbResults[0];
-            return {
-              title: gb.title || '',
-              authors: gb.authors || [],
-              publisher: '',
-              price: null,
-              isbn: gb.isbn || isbn,
-              thumbnail: gb.thumbnail || '',
-              description: gb.description || ''
-            };
-          }
-        }
         throw new Error('Invalid URL or ISBN not found');
       }
 
@@ -109,6 +104,15 @@ export class BooksService {
         
         const priceText = $('.txt-price').first().text().replace(/[^0-9.]/g, '');
         if (priceText) price = parseFloat(priceText);
+      } else if (url.includes('kinokuniya.com')) {
+        title = $('h1').text().split('Added')[0].trim();
+        thumbnail = $('img[src*="bci.kinokuniya.com"]').first().attr('src') || $('meta[property="og:image"]').attr('content') || '';
+        author = $('.author a').first().text().trim();
+        description = $('meta[property="og:description"]').attr('content') || '';
+        isbn = url.split('/').pop() || '';
+        const priceText = $('.price').first().text().trim();
+        const priceMatch = priceText.match(/฿\s*([0-9,.]+)/);
+        if (priceMatch) price = parseFloat(priceMatch[1].replace(/,/g, ''));
       } else {
         title = $('meta[property="og:title"]').attr('content') || $('title').text();
         thumbnail = $('meta[property="og:image"]').attr('content') || '';

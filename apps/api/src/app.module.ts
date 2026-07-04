@@ -1,3 +1,12 @@
+import { PrismaNurseModule } from './prisma-nurse/prisma-nurse.module';
+import { WardsModule } from './nurse/wards/wards.module';
+import { ShiftTypesModule } from './nurse/shift-types/shift-types.module';
+import { NurseProfilesModule } from './nurse/profiles/profiles.module';
+import { SchedulesModule } from './nurse/schedules/schedules.module';
+import { LeavesModule } from './nurse/leaves/leaves.module';
+import { NotificationsModule } from './nurse/notifications/notifications.module';
+import { ColleaguesModule } from './nurse/colleagues/colleagues.module';
+import { NurseAuthModule } from './nurse/auth/auth.module';
 import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -25,6 +34,8 @@ import { GeofencesModule } from './geofences/geofences.module';
 import { ELearningModule } from './e-learning/e-learning.module';
 import { BooksModule } from './books/books.module';
 import { BookCategoriesModule } from './book-categories/book-categories.module';
+import { SyncModule } from './sync/sync.module';
+import { CrocAuthModule } from './croc-auth/croc-auth.module';
 
 @Module({
   imports: [
@@ -55,8 +66,10 @@ import { BookCategoriesModule } from './book-categories/book-categories.module';
     ELearningModule,
     BooksModule,
     BookCategoriesModule,
+    PrismaNurseModule, WardsModule, ShiftTypesModule, NurseProfilesModule, SchedulesModule, LeavesModule, NotificationsModule, ColleaguesModule, NurseAuthModule, SyncModule, CrocAuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule { }
+

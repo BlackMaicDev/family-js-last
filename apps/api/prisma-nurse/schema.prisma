@@ -1,0 +1,196 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/@prisma/client-nurse"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("NURSE_DATABASE_URL")
+}
+
+model Ward {
+  id          String         @id @default(uuid())
+  name        String         @unique
+  code        String         @unique
+  color       String         @default("#6366f1")
+  description String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  nurses      NurseProfile[]
+  schedules   Schedule[]
+
+  @@map("wards")
+}
+
+model ShiftType {
+  id            String          @id @default(uuid())
+  name          String          @unique
+  code          String          @unique
+  startTime     String
+  endTime       String
+  durationHours Float
+  color         String          @default("#3b82f6")
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  entries       ScheduleEntry[]
+
+  @@map("shift_types")
+}
+
+model NurseProfile {
+  id            String              @id @default(uuid())
+  employeeId    String              @unique
+  firstName     String
+  lastName      String
+  phone         String?
+  position      NursePosition       @default(RN)
+  licenseNo     String?
+  avatarUrl     String?
+  isActive      Boolean             @default(true)
+  hireDate      DateTime?
+  wardId        String
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  password      String?
+  following     ColleagueLink[]     @relation("ColleagueFollower")
+  followers     ColleagueLink[]     @relation("ColleagueFollowing")
+  leaveRequests LeaveRequest[]
+  notifications NurseNotification[]
+  ward          Ward                @relation(fields: [wardId], references: [id])
+  entries       ScheduleEntry[]
+
+  @@map("nurse_profiles")
+}
+
+model Schedule {
+  id          String          @id @default(uuid())
+  year        Int
+  month       Int
+  isPublished Boolean         @default(false)
+  publishedAt DateTime?
+  note        String?
+  wardId      String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  entries     ScheduleEntry[]
+  ward        Ward            @relation(fields: [wardId], references: [id])
+
+  @@unique([wardId, year, month])
+  @@map("schedules")
+}
+
+model ScheduleEntry {
+  id             String         @id @default(uuid())
+  date           DateTime       @db.Date
+  type           ShiftEntryType @default(SHIFT)
+  note           String?
+  scheduleId     String
+  nurseId        String
+  shiftTypeId    String?
+  leaveRequestId String?        @unique
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  leaveRequest   LeaveRequest?  @relation(fields: [leaveRequestId], references: [id])
+  nurse          NurseProfile   @relation(fields: [nurseId], references: [id])
+  schedule       Schedule       @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  shiftType      ShiftType?     @relation(fields: [shiftTypeId], references: [id])
+
+  @@unique([scheduleId, nurseId, date])
+  @@index([nurseId, date])
+  @@map("schedule_entries")
+}
+
+model LeaveRequest {
+  id            String         @id @default(uuid())
+  type          LeaveType
+  startDate     DateTime       @db.Date
+  endDate       DateTime       @db.Date
+  totalDays     Int
+  reason        String?
+  status        LeaveStatus    @default(PENDING)
+  approvedBy    String?
+  approvedAt    DateTime?
+  rejectReason  String?
+  nurseId       String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  nurse         NurseProfile   @relation(fields: [nurseId], references: [id])
+  scheduleEntry ScheduleEntry?
+
+  @@index([nurseId, startDate])
+  @@map("leave_requests")
+}
+
+model NurseNotification {
+  id          String           @id @default(uuid())
+  type        NotificationType
+  title       String
+  body        String
+  isRead      Boolean          @default(false)
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  metadata    Json?
+  nurseId     String
+  createdAt   DateTime         @default(now())
+  nurse       NurseProfile     @relation(fields: [nurseId], references: [id], onDelete: Cascade)
+
+  @@index([nurseId, isRead])
+  @@map("nurse_notifications")
+}
+
+model ColleagueLink {
+  id          String              @id @default(uuid())
+  status      ColleagueLinkStatus @default(ACTIVE)
+  nickname    String?
+  followerId  String
+  followingId String
+  createdAt   DateTime            @default(now())
+  follower    NurseProfile        @relation("ColleagueFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   NurseProfile        @relation("ColleagueFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@map("colleague_links")
+}
+
+enum NursePosition {
+  HEAD_NURSE
+  RN
+  LPN
+  NURSE_AIDE
+  INTERN
+}
+
+enum ShiftEntryType {
+  SHIFT
+  OFF
+  ON_CALL
+  LEAVE
+}
+
+enum LeaveType {
+  SICK
+  ANNUAL
+  PERSONAL
+  MATERNITY
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum NotificationType {
+  LEAVE_REMINDER
+  SCHEDULE_PUBLISH
+  LEAVE_STATUS
+}
+
+enum ColleagueLinkStatus {
+  PENDING
+  ACTIVE
+  BLOCKED
+}

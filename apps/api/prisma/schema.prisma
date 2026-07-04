@@ -54,6 +54,7 @@ model User {
   @@map("users")
 }
 
+
 model RefreshToken {
   id         String   @id @default(uuid())
   token      String   @unique
@@ -104,6 +105,8 @@ model Book {
   thumbnail       String?
   isbn            String?
   pageCount       Int?
+  publisher       String?
+  price           Float?
   categories      String[] 
   
   bookCategoryId  String?

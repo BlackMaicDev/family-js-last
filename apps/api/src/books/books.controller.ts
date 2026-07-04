@@ -14,6 +14,11 @@ export class BooksController {
     return this.booksService.searchGoogleBooks(q);
   }
 
+  @Get('scrape')
+  async scrape(@Query('url') url: string) {
+    return this.booksService.scrapeBook(url);
+  }
+
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')

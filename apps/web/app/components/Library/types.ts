@@ -11,7 +11,10 @@ export interface Book {
   thumbnail?: string;
   isbn?: string;
   pageCount?: number;
+  publisher?: string;
+  price?: number;
   categories: string[];
   categoryId?: string;
+  bookCategoryId?: string;
   category?: Category;
 }

@@ -1,4 +1,4 @@
-import { IsString, IsArray, IsOptional, IsInt, IsUrl } from 'class-validator';
+import { IsString, IsArray, IsOptional, IsInt, IsUrl, IsNumber } from 'class-validator';
 
 export class CreateBookDto {
   @IsString()
@@ -32,4 +32,12 @@ export class CreateBookDto {
   @IsString()
   @IsOptional()
   bookCategoryId?: string;
+
+  @IsString()
+  @IsOptional()
+  publisher?: string;
+
+  @IsNumber()
+  @IsOptional()
+  price?: number;
 }

@@ -18,6 +18,8 @@ COPY apps/api ./apps/api
 
 # 4. Generate Prisma Client & Build
 RUN cd apps/api && pnpm exec prisma generate
+RUN cd apps/api && pnpm exec prisma generate --schema=prisma-nurse/schema.prisma
+RUN cd apps/api && pnpm exec prisma generate --schema=prisma-croc/schema.prisma
 RUN pnpm --filter api build
 
 # ============================================
@@ -37,9 +39,12 @@ COPY apps/web/package.json ./apps/web/package.json
 
 # 2. ก๊อปปี้ source และ build
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/node_modules ./apps/node_modules
 COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
+COPY --from=builder /app/apps/api/prisma-nurse ./apps/api/prisma-nurse
+COPY --from=builder /app/apps/api/prisma-croc ./apps/api/prisma-croc
 
 # 3. สร้าง Public folder
 RUN mkdir -p /app/apps/api/public/uploads

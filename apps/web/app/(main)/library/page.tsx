@@ -34,7 +34,7 @@ export default function LibraryPage() {
       setLoading(true);
       const [booksRes, catsRes] = await Promise.all([
         fetch(`${apiUrl}/books`),
-        fetch(`${apiUrl}/categories`)
+        fetch(`${apiUrl}/book-categories`)
       ]);
       
       if (booksRes.ok && catsRes.ok) {
@@ -51,7 +51,7 @@ export default function LibraryPage() {
   // Group books by category
   const groupedBooks = categories.map(cat => ({
     category: cat,
-    books: books.filter(b => b.categoryId === cat.id)
+    books: books.filter(b => b.bookCategoryId === cat.id)
   })).filter(group => group.books.length > 0);
 
   if (loading) {
@@ -205,7 +205,7 @@ export default function LibraryPage() {
                 </p>
               </div>
 
-              <div className="pt-8 grid grid-cols-2 gap-8 border-t border-white/5">
+              <div className="pt-8 grid grid-cols-2 md:grid-cols-4 gap-8 border-t border-white/5">
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">ISBN</p>
                   <p className="text-sm font-mono text-white/80">{selectedBook.isbn || 'N/A'}</p>
@@ -213,6 +213,14 @@ export default function LibraryPage() {
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Pages</p>
                   <p className="text-sm font-mono text-white/80">{selectedBook.pageCount || 'N/A'}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Publisher</p>
+                  <p className="text-sm font-mono text-white/80">{selectedBook.publisher || 'N/A'}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Price</p>
+                  <p className="text-sm font-mono text-white/80">{selectedBook.price ? `฿${selectedBook.price}` : 'N/A'}</p>
                 </div>
               </div>
             </div>

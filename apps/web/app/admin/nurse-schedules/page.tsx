@@ -361,7 +361,7 @@ export default function NurseSchedulesPage() {
                         </div>
                     ))}
                     <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded-full bg-slate-200 flex items-center justify-center text-[8px] text-slate-500">✗</div>
+                        <div className="w-3 h-3 rounded-full flex items-center justify-center text-[8px]" style={{ backgroundColor: '#ef444420', color: '#ef4444' }}>✗</div>
                         <span style={{ color: 'var(--admin-muted)' }}>OFF</span>
                     </div>
                 </div>
@@ -428,7 +428,8 @@ export default function NurseSchedulesPage() {
                                                 } else if (shift.type === 'OFF') {
                                                     content = '✗';
                                                     currentVal = 'O';
-                                                    bgColor = 'var(--admin-hover)';
+                                                    bgColor = '#ef444420'; // Red 20% opacity
+                                                    textColor = '#ef4444'; // Red text
                                                 } else if (shift.type === 'LEAVE') {
                                                     content = 'ลา';
                                                     currentVal = 'L';

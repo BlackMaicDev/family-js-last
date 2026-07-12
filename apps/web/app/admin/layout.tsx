@@ -29,6 +29,7 @@ import {
     ClipboardList,
     BookOpen,
     Calendar,
+    Building2,
 } from 'lucide-react';
 
 // ====== Theme Context ======
@@ -72,6 +73,7 @@ const bottomMenuItems = [
 ];
 
 const nurseMenuItems = [
+    { label: 'Wards', href: '/admin/wards', icon: Building2 },
     { label: 'Nurses', href: '/admin/nurses', icon: Users },
     { label: 'Schedules', href: '/admin/nurse-schedules', icon: Calendar },
 ];

@@ -51,6 +51,6 @@ async function bootstrap() {
   // เส้นทาง /api จะเป็นหน้า Swagger
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(process.env.PORT ?? 3001);
+  await app.listen(process.env.PORT ?? 4000);
 }
 bootstrap();

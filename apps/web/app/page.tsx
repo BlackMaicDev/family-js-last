@@ -24,7 +24,7 @@ const HomeContent = () => {
   const [filter, setFilter] = useState('all');
 
   // API Base URL (adjust this to match your NestJS API port)
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
   // Fetch Categories & Posts
   useEffect(() => {

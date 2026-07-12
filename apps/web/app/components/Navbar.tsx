@@ -93,6 +93,7 @@ export function Navbar() {
     pathname === '/money' ||
     pathname === '/blog' ||
     pathname === '/library' ||
+    pathname === '/schedules' ||
     pathname.startsWith('/e-learning') ||
     pathname.startsWith('/exams')
   ) {
@@ -141,6 +142,7 @@ export function Navbar() {
                     <MobileNavLink href="/memories" current={pathname}>{t('nav.gallery')}</MobileNavLink>
                     <MobileNavLink href="/documents" current={pathname}>{t('nav.vault')}</MobileNavLink>
                     <MobileNavLink href="/resume" current={pathname}>{t('nav.resume')}</MobileNavLink>
+                    <MobileNavLink href="/schedules" current={pathname}>ตารางเวร</MobileNavLink>
                   </div>
                 </div>
               </div>
@@ -268,6 +270,7 @@ export function Navbar() {
               <Link href="/memories" className={`px-4 py-2.5 text-sm rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-[#C5A059] transition-colors ${pathname === '/memories' ? 'text-[#C5A059] bg-stone-50/50 dark:bg-stone-800/80' : 'text-stone-600 dark:text-stone-300'}`}>{t('nav.gallery')}</Link>
               <Link href="/documents" className={`px-4 py-2.5 mt-1 text-sm rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-[#C5A059] transition-colors ${pathname === '/documents' ? 'text-[#C5A059] bg-stone-50/50 dark:bg-stone-800/80' : 'text-stone-600 dark:text-stone-300'}`}>{t('nav.vault')}</Link>
               <Link href="/resume" className={`px-4 py-2.5 mt-1 text-sm rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-[#C5A059] transition-colors ${pathname === '/resume' ? 'text-[#C5A059] bg-stone-50/50 dark:bg-stone-800/80' : 'text-stone-600 dark:text-stone-300'}`}>{t('nav.resume')}</Link>
+              <Link href="/schedules" className={`px-4 py-2.5 mt-1 text-sm rounded-xl font-medium hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-[#C5A059] transition-colors ${pathname === '/schedules' ? 'text-[#C5A059] bg-stone-50/50 dark:bg-stone-800/80' : 'text-stone-600 dark:text-stone-300'}`}>ตารางเวร</Link>
             </div>
           </div>
 
@@ -332,6 +335,7 @@ export function Navbar() {
                   <MobileNavLink href="/memories" current={pathname}>{t('nav.gallery')}</MobileNavLink>
                   <MobileNavLink href="/documents" current={pathname}>{t('nav.vault')}</MobileNavLink>
                   <MobileNavLink href="/resume" current={pathname}>{t('nav.resume')}</MobileNavLink>
+                  <MobileNavLink href="/schedules" current={pathname}>ตารางเวร</MobileNavLink>
                 </div>
               )}
             </div>

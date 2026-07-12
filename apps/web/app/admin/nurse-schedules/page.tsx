@@ -568,7 +568,7 @@ function UploadModal({ wards, shiftTypes, nurses, onClose, onSuccess }: { wards:
                                 else if (shiftCode === 'ช/บ') searchCode = 'M/A';
                                 else if (shiftCode === 'ด/บ') searchCode = 'N/A';
 
-                                const foundShift = shiftTypes.find(s => s.code.toUpperCase() === searchCode);
+                                const foundShift = shiftTypes.find(s => s.code.toUpperCase() === searchCode || s.code.toUpperCase() === shiftCode);
                                 if (foundShift) {
                                     shiftTypeId = foundShift.id;
                                 } else {

@@ -173,7 +173,7 @@ export default function SchedulesPage() {
                             </div>
                         ))}
                         <div className="flex items-center gap-2">
-                            <div className="w-3.5 h-3.5 rounded-full bg-stone-200 dark:bg-stone-800 flex items-center justify-center text-[10px] text-stone-500">✗</div>
+                            <div className="w-3.5 h-3.5 rounded-full bg-rose-500/20 flex items-center justify-center text-[10px] text-rose-500">✗</div>
                             <span>OFF</span>
                         </div>
                     </div>
@@ -239,8 +239,8 @@ export default function SchedulesPage() {
 
                                                 if (shift) {
                                                     if (shift.type === 'OFF') {
-                                                        bgColor = 'var(--admin-hover)';
-                                                        textColor = '#9ca3af';
+                                                        bgColor = '#f43f5e15';
+                                                        textColor = '#f43f5e';
                                                     } else if (shift.type === 'LEAVE') {
                                                         bgColor = '#f43f5e15';
                                                         textColor = '#f43f5e';
@@ -255,9 +255,9 @@ export default function SchedulesPage() {
                                                     <td key={day} className="py-2 px-1 text-center border-l border-stone-100 dark:border-stone-800/50">
                                                         <div
                                                             className={`h-10 w-full rounded-xl flex items-center justify-center text-xs font-bold transition-all ${!shift ? 'bg-stone-50 dark:bg-stone-800/50 text-stone-300 dark:text-stone-600' : ''}`}
-                                                            style={shift && shift.type !== 'OFF' ? { backgroundColor: bgColor, color: textColor } : {}}
+                                                            style={shift ? { backgroundColor: bgColor, color: textColor } : {}}
                                                         >
-                                                            {shift ? (shift.type === 'OFF' ? <span className="text-lg text-stone-400/80 font-normal">✗</span> : (shift.type === 'LEAVE' ? 'ลา' : translateShiftCode(shift.shift?.code))) : '-'}
+                                                            {shift ? (shift.type === 'OFF' ? <span className="text-lg text-[#f43f5e] font-normal">✗</span> : (shift.type === 'LEAVE' ? 'ลา' : translateShiftCode(shift.shift?.code))) : '-'}
                                                         </div>
                                                     </td>
                                                 );
@@ -342,7 +342,7 @@ export default function SchedulesPage() {
                                             let content = null;
                                             if (shift) {
                                                 if (shift.type === 'OFF') {
-                                                    content = <span className="text-4xl md:text-5xl font-light text-stone-300 dark:text-stone-600 select-none">✗</span>;
+                                                    content = <span className="text-4xl md:text-5xl font-light text-rose-500/80 select-none">✗</span>;
                                                 } else if (shift.type === 'LEAVE') {
                                                     content = <span className="text-2xl font-bold text-rose-500 select-none">ลา</span>;
                                                 } else if (shift.shift) {

@@ -72,6 +72,7 @@ const bottomMenuItems = [
 ];
 
 const nurseMenuItems = [
+    { label: 'Nurses', href: '/admin/nurses', icon: Users },
     { label: 'Schedules', href: '/admin/nurse-schedules', icon: Calendar },
 ];
 

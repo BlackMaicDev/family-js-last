@@ -42,9 +42,15 @@ export class ProfilesService {
 
   async remove(id: string) {
     const profile = await this.findOne(id);
-    return this.prisma.nurseProfile.update({
+    
+    // Hard delete: Delete schedule entries first to avoid foreign key constraints
+    await this.prisma.scheduleEntry.deleteMany({
+      where: { nurseId: profile.id },
+    });
+    
+    // Then delete the profile itself
+    return this.prisma.nurseProfile.delete({
       where: { id: profile.id },
-      data: { isActive: false }, // Soft delete by default
     });
   }
 }
